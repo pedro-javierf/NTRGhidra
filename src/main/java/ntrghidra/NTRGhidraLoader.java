@@ -167,6 +167,7 @@ public class NTRGhidraLoader extends AbstractLibrarySupportLoader {
 				block.setExecute(true);
 				
 				byte romBytes[] = provider.readBytes(arm9_file_offset, arm9_size);
+				//decompress 
 				program.getMemory().setBytes(api.toAddr(arm9_ram_base), romBytes);
 				
 				

@@ -8,12 +8,29 @@ public class NTRDecompression {
 
 	private static byte[] ModuleParamsMAGIC = { (byte) 0x21, (byte) 0x06, (byte)0xC0, (byte) 0xDE, (byte) 0xDE, (byte) 0xC0, (byte) 0x06, (byte) 0x21 };
 	
-	public static void writeIntLE(int value,DataOutputStream out) throws IOException {
+	public static void writeIntLE(int value, byte[] out, int addr) {
+		
+		  out[addr] = (byte) (value & 0xFF);
+		  out[addr+1] = (byte) ((value >> 8) & 0xFF);
+		  out[addr+2] = (byte) ((value >> 16) & 0xFF);
+		  out[addr+3] = (byte) ((value >> 24) & 0xFF);
+		  
+		  /*
 		  out.writeByte(value & 0xFF);
 		  out.writeByte((value >> 8) & 0xFF);
 		  out.writeByte((value >> 16) & 0xFF);
-		  out.writeByte((value >> 24) & 0xFF);
+		  out.writeByte((value >> 24) & 0xFF);*/
 		}
+	
+	public static int readIntLE(byte[] Data, int offset)
+	{
+		int result = 0;
+		result |= Data[offset];
+		result = result | (Data[offset+1] << 8);
+		result = result | (Data[offset+2] << 16);
+		result = result | (Data[offset+3] << 24);
+		return result;
+	}
 	
 	private static long IndexOf(byte[] Data, byte[] Search)
 	{
@@ -53,21 +70,27 @@ public class NTRDecompression {
 	
 	public static byte[] Decompress(byte[] Data, int _start_ModuleParamsOffset)
 	{
-		if (IOUtil.ReadU32LE(Data, (int)_start_ModuleParamsOffset + 0x14) == 0) 
+		if (readIntLE(Data, (int) _start_ModuleParamsOffset + 0x14) == 0) 
 			return Data;//Not Compressed!
 		
 		byte[] Result = MIi_UncompressBackward(Data);
-		writeIntLE(Result, (int)_start_ModuleParamsOffset + 0x14, 0);
+		writeIntLE(Result, _start_ModuleParamsOffset + 0x14, 0);
 		return Result;
 	}
 	
 	public static byte[] MIi_UncompressBackward(byte[] Data)
 	{
-		int leng = IOUtil.ReadU32LE(Data, Data.length - 4) + (int)Data.length;
+		int leng = readIntLE(Data, Data.length - 4) + Data.length;
 		byte[] Result = new byte[leng];
-		Array.Copy(Data, Result, Data.length);
-		int Offs = (int)(Data.length - (IOUtil.ReadU32LE(Data, Data.length - 8) >> 24));
-		int dstoffs = (int)leng;
+		
+		//Array.Copy(Data, Result, Data.length);
+		for(int i = 0; i < Data.length; i++)
+		{
+			Result[i] = Data[i];
+		}
+		
+		int Offs = (Data.length - (readIntLE(Data, Data.length - 8) >> 24));
+		int dstoffs = leng;
 		while (true)
 		{
 			byte header = Result[--Offs];
@@ -88,7 +111,7 @@ public class NTRDecompression {
 					}
 					while (length >= 0);
 				}
-				if (Offs <= (Data.length - (IOUtil.ReadU32LE(Data, Data.length - 8) & 0xFFFFFF))) return Result;
+				if (Offs <= (Data.length - (readIntLE(Data, Data.length - 8) & 0xFFFFFF))) return Result;
 				header <<= 1;
 			}
 		}
