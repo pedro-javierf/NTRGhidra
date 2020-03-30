@@ -21,6 +21,7 @@ import java.util.*;
 import docking.widgets.OptionDialog;
 import ghidra.app.util.Option;
 import ghidra.app.util.bin.BinaryReader;
+import ghidra.app.util.bin.ByteArrayProvider;
 import ghidra.app.util.bin.ByteProvider;
 import ghidra.app.util.importer.MessageLog;
 import ghidra.app.util.opinion.AbstractLibrarySupportLoader;
@@ -43,6 +44,7 @@ import ghidra.util.HTMLUtilities;
 import ghidra.util.exception.CancelledException;
 import ghidra.util.exception.DuplicateNameException;
 import ghidra.util.task.TaskMonitor;
+import ntrghidra.NDS.RomHeader;
 
 /**
  * TODO: Provide class-level documentation that describes what this loader does.
@@ -50,7 +52,9 @@ import ghidra.util.task.TaskMonitor;
 public class NTRGhidraLoader extends AbstractLibrarySupportLoader {
 
 	private boolean chosenCPU;
+	private boolean usesNintendoSDK;
 	
+	/* NOT YET IMPLEMENTED
 	//Labels for registers and other similar addresses of interest
 	private static class RegLabel {
 		String label;
@@ -60,7 +64,7 @@ public class NTRGhidraLoader extends AbstractLibrarySupportLoader {
 			this.addr = addr;
 		}
 		
-	}
+	}*/
 	
 	@Override
 	public String getName() {
@@ -117,12 +121,14 @@ public class NTRGhidraLoader extends AbstractLibrarySupportLoader {
 		return new ArrayList<>();
 	}
 
-	public byte[] GetDecompressedARM9()
+	/*
+	public byte[] GetDecompressedARM9(byte[] armBin)
 	{
-		//StaticFooter = new NitroFooter(er);
-		if (StaticFooter != null) return ARM9.Decompress(MainRom, StaticFooter._start_ModuleParamsOffset);
-		else return ARM9.Decompress(MainRom);
-	}
+	
+		StaticFooter = new NitroFooter(er);
+		if (StaticFooter != null) return ARM9.Decompress(armBin, StaticFooter._start_ModuleParamsOffset);
+		else return ARM9.Decompress(armBin);
+	}*/
 	
 	@Override
 	protected void load(ByteProvider provider, LoadSpec loadSpec, List<Option> options,Program program, TaskMonitor monitor, MessageLog log) throws CancelledException, IOException
@@ -175,35 +181,38 @@ public class NTRGhidraLoader extends AbstractLibrarySupportLoader {
 				
 				//Create a new byteprovider?
 				
-				
-				
 				byte romBytes[] = provider.readBytes(arm9_file_offset, arm9_size); //read arm9 blob
-				//decompress 
-				ARM9 trabajador = new ARM9(romBytes, arm9_ram_base);
-				//NTRDecompression decompressor = new NTRDecompression(arm9_ram_base, romBytes);
 				
-				
-				
-				program.getMemory().setBytes(api.toAddr(arm9_ram_base), romBytes);
-				
-				
-				/* Empty Memory segments: */
-				api.createMemoryBlock("Shared WRAM", api.toAddr(0x03000000), null, 0x01000000, true);
-				api.createMemoryBlock("ARM9 I/O Ports", api.toAddr(0x04000000), null, 0x01000000, true);
-				api.createMemoryBlock("Standard Palettes", api.toAddr(0x05000000), null, 0x01000000, true);
-				
-				api.createMemoryBlock("VRAM - Engine A BG VRAM", api.toAddr(0x06000000), null, 0x00200000, true);
-				api.createMemoryBlock("VRAM - Engine B BG VRAM", api.toAddr(0x06200000), null, 0x00200000, true);
-				api.createMemoryBlock("VRAM - Engine A OBJ VRAM", api.toAddr(0x06400000), null, 0x00200000, true);
-				api.createMemoryBlock("VRAM - Engine B OBJ VRAM", api.toAddr(0x06600000), null, 0x00200000, true);
-				
-				api.createMemoryBlock("VRAM - LCDC", api.toAddr(0x06800000), null, 0x00200000, true);
-				
-				//Set entrypoint
-				api.addEntryPoint(api.toAddr(arm9_entrypoint));
-				api.disassemble(api.toAddr(arm9_entrypoint));
-				api.createFunction(api.toAddr(arm9_entrypoint), "_entry_arm9");
-
+				if(usesNintendoSDK) //try to apply decompression
+				{
+					ByteArrayProvider arm9bin_provider = new ByteArrayProvider(romBytes);
+					BinaryReader arm9bin_reader = new BinaryReader(provider, true);
+					
+					//decompress 
+					ARM9 trabajador = new ARM9(romBytes, arm9_ram_base);
+				}
+				else
+				{
+					program.getMemory().setBytes(api.toAddr(arm9_ram_base), romBytes);
+					
+					
+					/* Empty Memory segments: */
+					api.createMemoryBlock("Shared WRAM", api.toAddr(0x03000000), null, 0x01000000, true);
+					api.createMemoryBlock("ARM9 I/O Ports", api.toAddr(0x04000000), null, 0x01000000, true);
+					api.createMemoryBlock("Standard Palettes", api.toAddr(0x05000000), null, 0x01000000, true);
+					
+					api.createMemoryBlock("VRAM - Engine A BG VRAM", api.toAddr(0x06000000), null, 0x00200000, true);
+					api.createMemoryBlock("VRAM - Engine B BG VRAM", api.toAddr(0x06200000), null, 0x00200000, true);
+					api.createMemoryBlock("VRAM - Engine A OBJ VRAM", api.toAddr(0x06400000), null, 0x00200000, true);
+					api.createMemoryBlock("VRAM - Engine B OBJ VRAM", api.toAddr(0x06600000), null, 0x00200000, true);
+					
+					api.createMemoryBlock("VRAM - LCDC", api.toAddr(0x06800000), null, 0x00200000, true);
+					
+					//Set entrypoint
+					api.addEntryPoint(api.toAddr(arm9_entrypoint));
+					api.disassemble(api.toAddr(arm9_entrypoint));
+					api.createFunction(api.toAddr(arm9_entrypoint), "_entry_arm9");
+				}
 				
 			}
 			else 		  //ARM7
