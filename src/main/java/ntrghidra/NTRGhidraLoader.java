@@ -117,6 +117,13 @@ public class NTRGhidraLoader extends AbstractLibrarySupportLoader {
 		return new ArrayList<>();
 	}
 
+	public byte[] GetDecompressedARM9()
+	{
+		//StaticFooter = new NitroFooter(er);
+		if (StaticFooter != null) return ARM9.Decompress(MainRom, StaticFooter._start_ModuleParamsOffset);
+		else return ARM9.Decompress(MainRom);
+	}
+	
 	@Override
 	protected void load(ByteProvider provider, LoadSpec loadSpec, List<Option> options,Program program, TaskMonitor monitor, MessageLog log) throws CancelledException, IOException
 	{
@@ -166,8 +173,17 @@ public class NTRGhidraLoader extends AbstractLibrarySupportLoader {
 				block.setWrite(false);
 				block.setExecute(true);
 				
-				byte romBytes[] = provider.readBytes(arm9_file_offset, arm9_size);
+				//Create a new byteprovider?
+				
+				
+				
+				byte romBytes[] = provider.readBytes(arm9_file_offset, arm9_size); //read arm9 blob
 				//decompress 
+				ARM9 trabajador = new ARM9(romBytes, arm9_ram_base);
+				//NTRDecompression decompressor = new NTRDecompression(arm9_ram_base, romBytes);
+				
+				
+				
 				program.getMemory().setBytes(api.toAddr(arm9_ram_base), romBytes);
 				
 				
@@ -198,7 +214,7 @@ public class NTRGhidraLoader extends AbstractLibrarySupportLoader {
 				int arm7_ram_base = reader.readInt(0x038);
 				int arm7_size = reader.readInt(0x03C);
 				
-				//Create ARM9 Memory Map
+				//Create ARM7 Memory Map
 				ghidra.program.model.address.Address addr = program.getAddressFactory().getDefaultAddressSpace().getAddress(arm7_ram_base);
 				MemoryBlock block = program.getMemory().createInitializedBlock("ARM7 Main Memory", addr, arm7_size, (byte)0x00, monitor, false);	
 				
