@@ -2,7 +2,6 @@ package ntrghidra;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.ObjectOutputStream;
 
 import org.python.bouncycastle.util.Arrays;
 
@@ -22,6 +21,7 @@ public class CRT0
 			NitroCodeBE = IOUtil.ReadU32LE(Data, (int)Offset + 28);
 			NitroCodeLE = IOUtil.ReadU32LE(Data, (int)Offset + 32);
 		}
+		
 		public void Write(/*EndianBinaryWriter*/DataOutputStream er) throws IOException
 		{
 			er.writeInt(AutoLoadListOffset);

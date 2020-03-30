@@ -38,17 +38,18 @@ public class ARM9
 
 		this.RamAddress = RamAddress;
 		this._start_ModuleParamsOffset = _start_ModuleParamsOffset;
-		_start_ModuleParams = new CRT0.ModuleParams(Data, _start_ModuleParamsOffset);
+		
+		CRT0 a = new CRT0();
+		_start_ModuleParams = a.new ModuleParams(Data, _start_ModuleParamsOffset);
 		
 		if (_start_ModuleParams.CompressedStaticEnd != 0)
 		{
 			Data = Decompress(Data, _start_ModuleParamsOffset);
-			_start_ModuleParams = new CRT0.ModuleParams(Data, _start_ModuleParamsOffset);
+			_start_ModuleParams = a.new ModuleParams(Data, _start_ModuleParamsOffset);
 		}
 
 		StaticData = new byte[_start_ModuleParams.AutoLoadStart - RamAddress];
 		//Array.Copy(Data, StaticData, _start_ModuleParams.AutoLoadStart - RamAddress);
-
 		StaticData = Arrays.copyOf(Data, _start_ModuleParams.AutoLoadStart - RamAddress);
 		
 		AutoLoadList = new ArrayList<CRT0.AutoLoadEntry>();
@@ -56,11 +57,13 @@ public class ARM9
 		int Offset = _start_ModuleParams.AutoLoadStart - RamAddress;
 		for (int i = 0; i < nr; i++)
 		{
-			var entry = new CRT0.AutoLoadEntry(Data, _start_ModuleParams.AutoLoadListOffset - RamAddress + (int)i * 0xC);
+			var entry = a.new AutoLoadEntry(Data, _start_ModuleParams.AutoLoadListOffset - RamAddress + (int)i * 0xC);
 			entry.Data = new byte[entry.Size];
 			
 			
-			Array.Copy(Data, Offset, entry.Data, 0, entry.Size);
+			//GOOD ?
+			//Array.Copy(Data, Offset, entry.Data, 0, entry.Size);
+			entry.Data = Arrays.copyOf(Data, entry.Size);
 			
 			
 			
