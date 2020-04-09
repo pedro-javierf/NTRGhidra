@@ -20,5 +20,5 @@ Provided is an Eclipse project to debug and build the loader. You must have a Gh
 
 # Features
  - [x] Load NTR format files (usually .nds extension)
- - [ ] SDK Decompression
+ - [ ] SDK Decompression (almost there)
  - [ ] SDK autoloading
