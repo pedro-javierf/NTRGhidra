@@ -54,7 +54,7 @@ public class CRT0
 			Size = Data.length;
 			BssSize = 0;
 		}
-		public AutoLoadEntry(byte[] Data, int Offset)
+		public AutoLoadEntry(byte[] Data, int Offset) //segments (?)
 		{
 			Address = IOUtil.ReadU32LE(Data, Offset + 0);
 			Size = IOUtil.ReadU32LE(Data, Offset + 4);
@@ -87,14 +87,22 @@ public class CRT0
 		int dstoffs = leng;
 		while (true)
 		{
-			byte header = Result[--Offs];
+			Offs-=2;
+			byte header = Result[Offs];
 			for (int i = 0; i < 8; i++)
 			{
-				if ((header & 0x80) == 0) Result[--dstoffs] = Result[--Offs];
+				if ((header & 0x80) == 0)
+				{
+					Offs--;
+					dstoffs--;
+					Result[dstoffs] = Result[Offs];
+				}
 				else
 				{
-					byte a = Result[--Offs];
-					byte b = Result[--Offs];
+					Offs--;
+					byte a = Result[Offs];
+					Offs--;
+					byte b = Result[Offs];
 					int offs = (((a & 0xF) << 8) | b) + 2;//+ 1;
 					int length = (a >> 4) + 2;
 					do
