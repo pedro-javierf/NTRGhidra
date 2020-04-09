@@ -57,7 +57,7 @@ public class ARM9
 		int Offset = _start_ModuleParams.AutoLoadStart - RamAddress;
 		for (int i = 0; i < nr; i++)
 		{
-			var entry = a.new AutoLoadEntry(Data, _start_ModuleParams.AutoLoadListOffset - RamAddress + (int)i * 0xC);
+			var entry = a.new AutoLoadEntry(Data, _start_ModuleParams.AutoLoadListOffset - RamAddress + i * 0xC);
 			entry.Data = new byte[entry.Size];
 			
 			
@@ -168,9 +168,33 @@ public class ARM9
 
 	private static int FindModuleParams(byte[] Data)
 	{
-		return (int)IndexOf(Data, new byte[] { 0x21, 0x06, (byte) 0xC0, (byte) 0xDE, (byte) 0xDE, (byte) 0xC0, 0x06, 0x21 }) - 0x1C;
+		return (int)(IndexOf(Data, new byte[] { 0x21, 0x06, (byte) 0xC0, (byte) 0xDE, (byte) 0xDE, (byte) 0xC0, 0x06, 0x21 }) - 0x1C);
 	}
 
+	private static long IndexOf(byte[] Data, byte[] Search)
+	{
+		long index = -1;
+		boolean found = false;
+		for(int i = 0; i < Data.length; i++)
+		{
+			if(Data[i]==Search[0]) //byte is a primitive type
+			{
+				found = true;
+				for(int x = i; x < i+Search.length-1; x++)
+				{
+					if(Data[x]!=Search[x])
+					{
+						found = false;
+						break;
+					}
+				}
+			}
+			if(found) {break;}
+		}
+		return index;
+	}
+	
+	/*
 	private static long IndexOf(byte[] Data, byte[] Search)
 	{
 		fixed (byte* H = Data) fixed (byte* N = Search)
@@ -184,5 +208,5 @@ public class ARM9
 			}
 			return -1;
 		}
-	}
+	}*/
 }

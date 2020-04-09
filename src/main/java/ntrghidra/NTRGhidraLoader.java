@@ -89,133 +89,134 @@ public class NTRGhidraLoader extends AbstractLibrarySupportLoader {
 		//@formatter:on
 
 		if (choice == OptionDialog.OPTION_TWO) { // ARM9
-			chosenCPU = false;
+			//chosenCPU = false;
 			return false;
 		}
-		chosenCPU = true;
+		//chosenCPU = true;
 		return true; //ARM7
+	}
+	
+	protected boolean promptToAskSDK() {
+
+		String message = "<html>Nintendo DS binaries from official games use a known SDK compression algorithm. <br><br> If you are loading a comercial game, click YES. \"";
+		//@formatter:off
+			int choice =
+					OptionDialog.showOptionNoCancelDialog(
+					null,
+					"Comercial ROM or Homebrew?",
+					message,
+					"<html> (<font color=\"red\">NO</font>)",
+					"<html> (<font color=\"green\">YES</font>)",
+					OptionDialog.QUESTION_MESSAGE);
+		//@formatter:on
+
+		if (choice == OptionDialog.OPTION_TWO) {
+			return true;
+		}
+		return false; 
 	}
 	
 	@Override
 	public Collection<LoadSpec> findSupportedLoadSpecs(ByteProvider provider) throws IOException {
 		// In this callback loader should decide whether it able to process the file and return instance of the class LoadSpec, telling user how file can be processed*/
 		
-		
 		BinaryReader reader = new BinaryReader(provider, true);
-		
 		boolean targetCPU;
 		
 		if ((reader.readInt(0x15C) & 0x0000FFFF) == (0xCF56))
 		{
 			//Nintendo DS has two CPUs. Ask the user which code he/she wants to work with, the ARM7 one or the ARM9 one.
 			targetCPU = promptToAskCPU();
+			this.chosenCPU = targetCPU;
+			this.usesNintendoSDK = promptToAskSDK();
 			
 			//Setup Ghidra with the chosen CPU.
 			if(targetCPU)
 				return List.of(new LoadSpec(this, 0, new LanguageCompilerSpecPair("ARM:LE:32:v4t", "default"), true));
-			else
-				return List.of(new LoadSpec(this, 0, new LanguageCompilerSpecPair("ARM:LE:32:v5t", "default"), true));
 			
+			return List.of(new LoadSpec(this, 0, new LanguageCompilerSpecPair("ARM:LE:32:v5t", "default"), true));
 		}
-		
 		return new ArrayList<>();
 	}
-
-	/*
-	public byte[] GetDecompressedARM9(byte[] armBin)
-	{
-	
-		StaticFooter = new NitroFooter(er);
-		if (StaticFooter != null) return ARM9.Decompress(armBin, StaticFooter._start_ModuleParamsOffset);
-		else return ARM9.Decompress(armBin);
-	}*/
 	
 	@Override
 	protected void load(ByteProvider provider, LoadSpec loadSpec, List<Option> options,Program program, TaskMonitor monitor, MessageLog log) throws CancelledException, IOException
 	{
 		BinaryReader reader = new BinaryReader(provider, true);
-		
 		FlatProgramAPI api = new FlatProgramAPI(program, monitor);
-		
 		Memory mem = program.getMemory();
-		
-		monitor.setMessage("Loading Nintendo DS (NTR) binary...");
-		// Load the bytes from 'provider' into the 'program'.
-		
-		//
-		// NDS Cart Layout
-		//
-		//Address  Bytes   Explaination
-		// ...
-		//020h       4     ARM9 rom_offset    (4000h and up, align 1000h) <---- offset in file
-		//024h       4     ARM9 entry_address (2000000h..23BFE00h)        <---- entryPoint
-		//028h       4     ARM9 ram_address   (2000000h..23BFE00h)        <---- where to map in Ghidra
-		//02Ch       4     ARM9 size          (max 3BFE00h) (3839.5KB)
-
-		//030h       4     ARM7 rom_offset    (8000h and up)
-		//034h       4     ARM7 entry_address (2000000h..23BFE00h, or 37F8000h..3807E00h)
-		//038h       4     ARM7 ram_address   (2000000h..23BFE00h, or 37F8000h..3807E00h)
-		//03Ch       4     ARM7 size          (max 3BFE00h, or FE00h) (3839.5KB, 63.5KB)
-		//		
+		monitor.setMessage("Loading Nintendo DS (NTR) binary...");	
 				
-		try {
-			
-			
-			
+		try
+		{
 			if(!chosenCPU) //ARM9
 			{
 				monitor.setMessage("Loading Nintendo DS ARM9 binary...");
+				
+				//Read the important values from the header. Can be implemented in a separate class.
 				int arm9_file_offset = reader.readInt(0x020);
 				int arm9_entrypoint = reader.readInt(0x024);
 				int arm9_ram_base = reader.readInt(0x028);
 				int arm9_size = reader.readInt(0x02C);
 				
-				/* Main RAM block: has to be filled with the file(.nds) corresponding binary */
+				// Main RAM block: has to be created without the Flat API.
 				ghidra.program.model.address.Address addr = program.getAddressFactory().getDefaultAddressSpace().getAddress(arm9_ram_base);
-				MemoryBlock block = program.getMemory().createInitializedBlock("ARM9 Main Memory", addr, arm9_size, (byte)0x00, monitor, false);	
+				MemoryBlock block = mem.createInitializedBlock("ARM9 Main Memory", addr, arm9_size, (byte)0x00, monitor, false);	
 				
 				//Set properties
 				block.setRead(true);
-				block.setWrite(false);
+				block.setWrite(true);
 				block.setExecute(true);
 				
-				//Create a new byteprovider?
-				
-				byte romBytes[] = provider.readBytes(arm9_file_offset, arm9_size); //read arm9 blob
-				
+				//Work In Progress
 				if(usesNintendoSDK) //try to apply decompression
 				{
-					ByteArrayProvider arm9bin_provider = new ByteArrayProvider(romBytes);
-					BinaryReader arm9bin_reader = new BinaryReader(provider, true);
-					
-					//decompress 
-					ARM9 trabajador = new ARM9(romBytes, arm9_ram_base);
+					try {
+						System.err.println("testing");
+						
+						//ByteArrayProvider arm9bin_provider = new ByteArrayProvider(romBytes);
+						//BinaryReader arm9bin_reader = new BinaryReader(provider, true);
+						
+						//decompression
+						byte romBytes[] = provider.readBytes(0, provider.length());
+						/*ARM9 trabajador = new ARM9(romBytes, arm9_ram_base);*/
+						
+						NDS worker = new NDS(romBytes);
+						byte arm9blob[] = worker.GetDecompressedARM9();
+						
+						program.getMemory().setBytes(api.toAddr(arm9_ram_base), arm9blob);
+					}
+					catch(Exception e)
+					{
+						e.printStackTrace(); 
+						System.out.println(e);
+					}
 				}
 				else
 				{
-					program.getMemory().setBytes(api.toAddr(arm9_ram_base), romBytes);
-					
-					
-					/* Empty Memory segments: */
-					api.createMemoryBlock("Shared WRAM", api.toAddr(0x03000000), null, 0x01000000, true);
-					api.createMemoryBlock("ARM9 I/O Ports", api.toAddr(0x04000000), null, 0x01000000, true);
-					api.createMemoryBlock("Standard Palettes", api.toAddr(0x05000000), null, 0x01000000, true);
-					
-					api.createMemoryBlock("VRAM - Engine A BG VRAM", api.toAddr(0x06000000), null, 0x00200000, true);
-					api.createMemoryBlock("VRAM - Engine B BG VRAM", api.toAddr(0x06200000), null, 0x00200000, true);
-					api.createMemoryBlock("VRAM - Engine A OBJ VRAM", api.toAddr(0x06400000), null, 0x00200000, true);
-					api.createMemoryBlock("VRAM - Engine B OBJ VRAM", api.toAddr(0x06600000), null, 0x00200000, true);
-					
-					api.createMemoryBlock("VRAM - LCDC", api.toAddr(0x06800000), null, 0x00200000, true);
-					
-					//Set entrypoint
-					api.addEntryPoint(api.toAddr(arm9_entrypoint));
-					api.disassemble(api.toAddr(arm9_entrypoint));
-					api.createFunction(api.toAddr(arm9_entrypoint), "_entry_arm9");
+					//read arm9 blob
+					byte romBytes[] = provider.readBytes(arm9_file_offset, arm9_size); 
+					//Fill the main memory segment with the data from the binary directly
+					mem.setBytes(api.toAddr(arm9_ram_base), romBytes);
 				}
+					
+				// Empty Memory segments. Can be created with the Flat API.
+				api.createMemoryBlock("Shared WRAM", api.toAddr(0x03000000), null, 0x01000000, true);
+				api.createMemoryBlock("ARM9 I/O Ports", api.toAddr(0x04000000), null, 0x01000000, true);
+				api.createMemoryBlock("Standard Palettes", api.toAddr(0x05000000), null, 0x01000000, true);
+				api.createMemoryBlock("VRAM - Engine A BG VRAM", api.toAddr(0x06000000), null, 0x00200000, true);
+				api.createMemoryBlock("VRAM - Engine B BG VRAM", api.toAddr(0x06200000), null, 0x00200000, true);
+				api.createMemoryBlock("VRAM - Engine A OBJ VRAM", api.toAddr(0x06400000), null, 0x00200000, true);
+				api.createMemoryBlock("VRAM - Engine B OBJ VRAM", api.toAddr(0x06600000), null, 0x00200000, true);
+				api.createMemoryBlock("VRAM - LCDC", api.toAddr(0x06800000), null, 0x00200000, true);
+				
+				//Set entrypoint
+				api.addEntryPoint(api.toAddr(arm9_entrypoint));
+				api.disassemble(api.toAddr(arm9_entrypoint));
+				api.createFunction(api.toAddr(arm9_entrypoint), "_entry_arm9");
 				
 			}
-			else 		  //ARM7
+			else //ARM7
 			{
 				monitor.setMessage("Loading Nintendo DS ARM7 binary...");
 				int arm7_file_offset = reader.readInt(0x030);
@@ -229,7 +230,7 @@ public class NTRGhidraLoader extends AbstractLibrarySupportLoader {
 				
 				//Set properties
 				block.setRead(true);
-				block.setWrite(false);
+				block.setWrite(true);
 				block.setExecute(true);
 				
 				//Fill with the actual contents from file
@@ -252,12 +253,11 @@ public class NTRGhidraLoader extends AbstractLibrarySupportLoader {
 				
 				api.createMemoryBlock("GBA Slot ROM (max 32MB)", api.toAddr(0x06600000), null, 0x02000000, true);//32MB
 				api.createMemoryBlock("GBA Slot RAM (max 64KB)", api.toAddr(0x0A000000), null, 0x00010000, true); //64KB
-			}
-			
-			
+			}	
 		}
 		catch(Exception e)
 		{
+			//System.out.println(e.getStackTrace()[0].getLineNumber());
 			log.appendException(e);
 		}
 		
