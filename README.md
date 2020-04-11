@@ -27,3 +27,5 @@ Provided is an Eclipse project to debug and build the loader. You must have a Gh
  
 # Todo
  - [ ] Multiple language support for dialogs
+ - [ ] Add IO memory with names
+ - [ ] Function signatures for nitro/twl sdk functions
