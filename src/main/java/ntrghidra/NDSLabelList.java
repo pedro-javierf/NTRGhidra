@@ -121,6 +121,83 @@ public class NDSLabelList {
 			
 			
 			/*ARM7*/
+			
+			//I/O Map
+			_ARM7labels.add(new NDSLabel("REG_DISPSTAT", 0x4000004));
+			_ARM7labels.add(new NDSLabel("REG_VCOUNT", 0x4000006));
+			_ARM7labels.add(new NDSLabel("DMA Channels 0 to 3", 0x40000B0));
+			_ARM7labels.add(new NDSLabel("Timers 0 to 3", 0x4000100));
+			_ARM7labels.add(new NDSLabel("Debug SIODATA32", 0x4000120));
+			_ARM7labels.add(new NDSLabel("Debug SIOCNT", 0x4000128));
+			_ARM7labels.add(new NDSLabel("REG_keyinput", 0x4000130));
+			_ARM7labels.add(new NDSLabel("REG_keycnt", 0x4000132));
+			_ARM7labels.add(new NDSLabel("REG_Debug RCNT", 0x4000134));
+			_ARM7labels.add(new NDSLabel("REG_EXTKEYIN", 0x4000136));
+			_ARM7labels.add(new NDSLabel("RTC Realtime Clock Bus", 0x4000138));
+			_ARM7labels.add(new NDSLabel("REG_IPCSYNC", 0x4000180));
+			_ARM7labels.add(new NDSLabel("REG_IPCFIFOCNT", 0x4000184));
+			_ARM7labels.add(new NDSLabel("IPCFIFOSEND", 0x4000188));
+			_ARM7labels.add(new NDSLabel("REG_AUXSPICNT", 0x40001A0));
+			_ARM7labels.add(new NDSLabel("REG_AUXSPIDATA", 0x40001A2));
+			_ARM7labels.add(new NDSLabel("Gamecard bus timing/control", 0x40001A4));
+			_ARM7labels.add(new NDSLabel("Gamecard bus 8-byte command out", 0x40001A8));
+			_ARM7labels.add(new NDSLabel("Gamecard Encryption Seed 0 Lower 32bit", 0x40001B0));
+			_ARM7labels.add(new NDSLabel("Gamecard Encryption Seed 1 Lower 32bit", 0x40001B4));
+			_ARM7labels.add(new NDSLabel("Gamecard Encryption Seed 0 Upper 7bit (bit7-15 unused)", 0x40001B8));
+			_ARM7labels.add(new NDSLabel("Gamecard Encryption Seed 1 Upper 7bit (bit7-15 unused)", 0x40001BA));
+			_ARM7labels.add(new NDSLabel("SPI bus Control (Firmware, Touchscreen, Powerman)", 0x40001C0));
+			_ARM7labels.add(new NDSLabel("SPI bus Data", 0x40001C2));
+		
+			//ARM7 Memory and IRQ Control
+			_ARM7labels.add(new NDSLabel("Sound Channels 0 to 15", 0x4000204));
+			_ARM7labels.add(new NDSLabel("REG_SOUNDCNT", 0x4000206));
+			_ARM7labels.add(new NDSLabel("REG_SOUNDBIAS", 0x4000208));
+			_ARM7labels.add(new NDSLabel("REG_SNDCAP0CNT", 0x4000210));
+			_ARM7labels.add(new NDSLabel("REG_SNDCAP1CNT", 0x4000214));
+			_ARM7labels.add(new NDSLabel("REG_SNDCAP0DAD", 0x4000218));
+			_ARM7labels.add(new NDSLabel("REG_SNDCAP0LEN", 0x400021C));
+			_ARM7labels.add(new NDSLabel("REG_SNDCAP1DAD", 0x4000240));
+			_ARM7labels.add(new NDSLabel("REG_SNDCAP1LEN", 0x4000241));
+			_ARM7labels.add(new NDSLabel("REG_SNDCAP0DAD", 0x4000300));
+			_ARM7labels.add(new NDSLabel("REG_SNDCAP0LEN", 0x4000301));
+			_ARM7labels.add(new NDSLabel("REG_SNDCAP1DAD", 0x4000304));
+			_ARM7labels.add(new NDSLabel("REG_SNDCAP1LEN", 0x4000308));
+			
+			
+			//ARM7 Sound Registers (NOTE: sound channle specific registers missing)
+			_ARM7labels.add(new NDSLabel("Sound Channels 0 to 15", 0x4000400));
+			//...
+			_ARM7labels.add(new NDSLabel("REG_SOUNDCNT", 0x4000500));
+			_ARM7labels.add(new NDSLabel("REG_SOUNDBIAS", 0x4000504));
+			_ARM7labels.add(new NDSLabel("REG_SNDCAP0CNT", 0x4000508));
+			_ARM7labels.add(new NDSLabel("REG_SNDCAP1CNT", 0x4000509));
+			_ARM7labels.add(new NDSLabel("REG_SNDCAP0DAD", 0x4000510));
+			_ARM7labels.add(new NDSLabel("REG_SNDCAP0LEN", 0x4000514));
+			_ARM7labels.add(new NDSLabel("REG_SNDCAP1DAD", 0x4000518));
+			_ARM7labels.add(new NDSLabel("REG_SNDCAP1LEN", 0x400051C));
+			
+			
+			//ARM7 DSi Extra Registers
+			//not included
+			
+			//ARM7 IPC/ROM
+			_ARM7labels.add(new NDSLabel("IPCFIFORECV", 0x4100000));
+			_ARM7labels.add(new NDSLabel("Gamecard bus 4-byte data in, for manual or dma read", 0x4100010));
+			
+			//ARM7 3DS
+			//not included
+			
+			//ARM7 WLAN Registers
+			_ARM7labels.add(new NDSLabel("Wifi WS0 Region (32K) (Wifi Ports, and 8K Wifi RAM)", 0x4800000));
+			_ARM7labels.add(new NDSLabel("Wifi WS1 Region (32K) (mirror of above, other waitstates)", 0x4808000));
+			
+			
+			//ARM7 Hardcoded RAM Addresses for Exception Handling
+			_ARM7labels.add(new NDSLabel("DSi7 IRQ IF2 Check Bits (hardcoded RAM address) (DSi only)", 0x380FFC0));
+			_ARM7labels.add(new NDSLabel("NDS7 Debug Stacktop / Debug Vector (0=None)", 0x380FFDC));
+			_ARM7labels.add(new NDSLabel("NDS7 IRQ IF Check Bits (hardcoded RAM address)", 0x380FFF8));
+			_ARM7labels.add(new NDSLabel("NDS7 IRQ Handler (hardcoded RAM address)", 0x380FFFC));
+		
 		}
 		
 		public static NDSLabelList getInstance()
