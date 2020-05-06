@@ -45,6 +45,7 @@ import ghidra.util.exception.CancelledException;
 import ghidra.util.exception.DuplicateNameException;
 import ghidra.util.task.TaskMonitor;
 import ntrghidra.NDS.RomHeader;
+import ntrghidra.NDSLabelList.NDSLabel;
 import ntrghidra.NDSMemRegionList.NDSMemRegion;
 
 /**
@@ -127,12 +128,15 @@ public class NTRGhidraLoader extends AbstractLibrarySupportLoader {
 		if ((reader.readInt(0x15C) & 0x0000FFFF) == (0xCF56))
 		{
 			//Nintendo DS has two CPUs. Ask the user which code he/she wants to work with, the ARM7 one or the ARM9 one.
-			targetCPU = promptToAskCPU();
-			this.chosenCPU = targetCPU;
-			this.usesNintendoSDK = promptToAskSDK();
+			this.chosenCPU = promptToAskCPU();
+
+			
+			//Decompression only makes sense for ARM9
+			if(!chosenCPU)
+				this.usesNintendoSDK = promptToAskSDK();
 			
 			//Setup Ghidra with the chosen CPU.
-			if(targetCPU)
+			if(chosenCPU)
 				return List.of(new LoadSpec(this, 0, new LanguageCompilerSpecPair("ARM:LE:32:v4t", "default"), true));
 			
 			return List.of(new LoadSpec(this, 0, new LanguageCompilerSpecPair("ARM:LE:32:v5t", "default"), true));
@@ -201,9 +205,16 @@ public class NTRGhidraLoader extends AbstractLibrarySupportLoader {
 					mem.setBytes(api.toAddr(arm9_ram_base), romBytes);
 				}
 					
+				//Uninitialized memory regions
 				for(NDSMemRegion r: NDSMemRegionList.getInstance().getARM9Regions())
 				{
 					api.createMemoryBlock(r.name(), api.toAddr(r.addr()), null, r.size(), true);
+				}
+				
+				//Labels (REGISTERS, others, etc.)
+				for(NDSLabel l: NDSLabelList.getInstance().getARM9Labels())
+				{
+					api.createLabel(api.toAddr(l.addr()),l.name(),true);
 				}
 				
 				//Set entrypoint
@@ -233,9 +244,16 @@ public class NTRGhidraLoader extends AbstractLibrarySupportLoader {
 				byte romBytes[] = provider.readBytes(arm7_file_offset, arm7_size);			
 				program.getMemory().setBytes(addr, romBytes);
 				
+				//Uninitialized memory regions
 				for(NDSMemRegion r: NDSMemRegionList.getInstance().getARM7Regions())
 				{
 					api.createMemoryBlock(r.name(), api.toAddr(r.addr()), null, r.size(), true);
+				}
+				
+				//Labels (REGISTERS, others, etc.)
+				for(NDSLabel l: NDSLabelList.getInstance().getARM7Labels())
+				{
+					api.createLabel(api.toAddr(l.addr()),l.name(),true);
 				}
 				
 				//Set entrypoint
