@@ -7,7 +7,7 @@ A Nintendo DS Loader for Ghidra
 
 # Installation
 
-If you just want to instal the loader into a Ghidra installation:
+If you just want to install the loader into a existing Ghidra installation:
 
 1. Download the .zip from releases OR build the project.
 2. Put the .zip into the GHIDRA_INSTALL_DIR/Extensions/Ghidra folder
@@ -27,5 +27,5 @@ Provided is an Eclipse project to debug and build the loader. You must have a Gh
  
 # Todo
  - [ ] Multiple language support for dialogs
- - [ ] Add IO memory with names
+ - [x] Add IO memory with names
  - [ ] Function signatures for nitro/twl sdk functions

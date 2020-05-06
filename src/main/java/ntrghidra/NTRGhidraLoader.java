@@ -179,17 +179,14 @@ public class NTRGhidraLoader extends AbstractLibrarySupportLoader {
 					try {
 						System.err.println("testing");
 						
-						//ByteArrayProvider arm9bin_provider = new ByteArrayProvider(romBytes);
-						//BinaryReader arm9bin_reader = new BinaryReader(provider, true);
+						//read arm9 blob
+						byte romBytes[] = provider.readBytes(arm9_file_offset, arm9_size); 
 						
-						//decompression
-						byte romBytes[] = provider.readBytes(0, provider.length());
-						/*ARM9 trabajador = new ARM9(romBytes, arm9_ram_base);*/
+						//decompress and obtain abother blob
+						byte decompressedBytes[] = new NDS(romBytes).GetDecompressedARM9();
 						
-						NDS worker = new NDS(romBytes);
-						byte arm9blob[] = worker.GetDecompressedARM9();
-						
-						program.getMemory().setBytes(api.toAddr(arm9_ram_base), arm9blob);
+						//Fill the main memory segment with the decompressed data/code.
+						mem.setBytes(api.toAddr(arm9_ram_base), decompressedBytes);
 					}
 					catch(Exception e)
 					{
