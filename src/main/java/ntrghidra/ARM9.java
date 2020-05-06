@@ -57,7 +57,7 @@ public class ARM9
 		int Offset = _start_ModuleParams.AutoLoadStart - RamAddress;
 		for (int i = 0; i < nr; i++)
 		{
-			var entry = a.new AutoLoadEntry(Data, _start_ModuleParams.AutoLoadListOffset - RamAddress + i * 0xC);
+			AutoLoadEntry entry = a.new AutoLoadEntry(Data, _start_ModuleParams.AutoLoadListOffset - RamAddress + i * 0xC);
 			entry.Data = new byte[entry.Size];
 			
 			

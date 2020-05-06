@@ -45,6 +45,7 @@ import ghidra.util.exception.CancelledException;
 import ghidra.util.exception.DuplicateNameException;
 import ghidra.util.task.TaskMonitor;
 import ntrghidra.NDS.RomHeader;
+import ntrghidra.NDSMemRegionList.NDSMemRegion;
 
 /**
  * TODO: Provide class-level documentation that describes what this loader does.
@@ -200,15 +201,10 @@ public class NTRGhidraLoader extends AbstractLibrarySupportLoader {
 					mem.setBytes(api.toAddr(arm9_ram_base), romBytes);
 				}
 					
-				// Empty Memory segments. Can be created with the Flat API.
-				api.createMemoryBlock("Shared WRAM", api.toAddr(0x03000000), null, 0x01000000, true);
-				api.createMemoryBlock("ARM9 I/O Ports", api.toAddr(0x04000000), null, 0x01000000, true);
-				api.createMemoryBlock("Standard Palettes", api.toAddr(0x05000000), null, 0x01000000, true);
-				api.createMemoryBlock("VRAM - Engine A BG VRAM", api.toAddr(0x06000000), null, 0x00200000, true);
-				api.createMemoryBlock("VRAM - Engine B BG VRAM", api.toAddr(0x06200000), null, 0x00200000, true);
-				api.createMemoryBlock("VRAM - Engine A OBJ VRAM", api.toAddr(0x06400000), null, 0x00200000, true);
-				api.createMemoryBlock("VRAM - Engine B OBJ VRAM", api.toAddr(0x06600000), null, 0x00200000, true);
-				api.createMemoryBlock("VRAM - LCDC", api.toAddr(0x06800000), null, 0x00200000, true);
+				for(NDSMemRegion r: NDSMemRegionList.getInstance().getARM9Regions())
+				{
+					api.createMemoryBlock(r.name(), api.toAddr(r.addr()), null, r.size(), true);
+				}
 				
 				//Set entrypoint
 				api.addEntryPoint(api.toAddr(arm9_entrypoint));
@@ -237,22 +233,15 @@ public class NTRGhidraLoader extends AbstractLibrarySupportLoader {
 				byte romBytes[] = provider.readBytes(arm7_file_offset, arm7_size);			
 				program.getMemory().setBytes(addr, romBytes);
 				
+				for(NDSMemRegion r: NDSMemRegionList.getInstance().getARM7Regions())
+				{
+					api.createMemoryBlock(r.name(), api.toAddr(r.addr()), null, r.size(), true);
+				}
+				
 				//Set entrypoint
 				api.addEntryPoint(api.toAddr(arm7_entrypoint));
 				api.disassemble(api.toAddr(arm7_entrypoint));
 				api.createFunction(api.toAddr(arm7_entrypoint), "_entry_arm7");
-				
-				/* Empty Memory segments: */
-				api.createMemoryBlock("Shared WRAM", api.toAddr(0x03000000), null, 0x00800000, true);
-				api.createMemoryBlock("ARM7 WRAM (Private memory?)", api.toAddr(0x03800000), null, 0x00200000, true);
-				api.createMemoryBlock("ARM7 I/O Ports", api.toAddr(0x04000000), null, 0x00800000, true);
-				
-				api.createMemoryBlock("Wireless Communications Wait State 0 (8KB RAM at 4804000h)", api.toAddr(0x04800000), null, 0x00008000, true);
-				api.createMemoryBlock("Wireless Communications Wait State 1 (I/O Ports at 4808000h)", api.toAddr(0x04808000), null, 0x00200000, true); //adjust size to be exact. It is unexact right now
-				api.createMemoryBlock("VRAM allocated as Work RAM to ARM7 (max 256K)", api.toAddr(0x06000000), null, 0x0040000, true);
-				
-				api.createMemoryBlock("GBA Slot ROM (max 32MB)", api.toAddr(0x06600000), null, 0x02000000, true);//32MB
-				api.createMemoryBlock("GBA Slot RAM (max 64KB)", api.toAddr(0x0A000000), null, 0x00010000, true); //64KB
 			}	
 		}
 		catch(Exception e)
