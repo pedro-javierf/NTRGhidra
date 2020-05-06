@@ -177,13 +177,12 @@ public class NTRGhidraLoader extends AbstractLibrarySupportLoader {
 				if(usesNintendoSDK) //try to apply decompression
 				{
 					try {
-						System.err.println("testing");
 						
 						//read arm9 blob
-						byte romBytes[] = provider.readBytes(arm9_file_offset, arm9_size); 
+						//byte romBytes[] = provider.readBytes(arm9_file_offset, arm9_size); 
 						
 						//decompress and obtain abother blob
-						byte decompressedBytes[] = new NDS(romBytes).GetDecompressedARM9();
+						byte decompressedBytes[] = new NDS(provider).GetDecompressedARM9();
 						
 						//Fill the main memory segment with the decompressed data/code.
 						mem.setBytes(api.toAddr(arm9_ram_base), decompressedBytes);
