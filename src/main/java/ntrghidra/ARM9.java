@@ -154,15 +154,26 @@ public class ARM9
 	public static byte[] Decompress(byte[] Data)
 	{
 		int offset = FindModuleParams(Data);
-		if (offset == 0xffffffe3) return Data;//no moduleparams, so it must be uncompressed
-		return Decompress(Data, offset);
+		if (offset == 0xffffffe3) 
+		{
+			System.out.println("No moduleparams found: uncompressed!");
+			return Data;//no moduleparams, so it must be uncompressed
+		}
+		else
+		{
+			System.out.println("moduleparams found: trying to decompress");
+			return Decompress(Data, offset);
+		}
 	}
 
 	public static byte[] Decompress(byte[] Data, int _start_ModuleParamsOffset)
 	{
-		if (IOUtil.ReadU32LE(Data, _start_ModuleParamsOffset + 0x14) == 0) return Data;//Not Compressed!
+		if (IOUtil.ReadU32LE(Data, _start_ModuleParamsOffset + 0x14) == 0) 
+			return Data;//Not Compressed!
+		
 		byte[] Result = CRT0.MIi_UncompressBackward(Data);
-		IOUtil.WriteU32LE(Result, _start_ModuleParamsOffset + 0x14, 0);
+		IOUtil.WriteU32LE(Result, _start_ModuleParamsOffset + 0x14, 0); //sets 4 bytes to 0x0
+		
 		return Result;
 	}
 

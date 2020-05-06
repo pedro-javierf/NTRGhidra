@@ -7,15 +7,16 @@ import java.util.List;
 
 import ghidra.app.util.bin.BinaryReader;
 import ghidra.app.util.bin.ByteArrayProvider;
+import ghidra.app.util.bin.ByteProvider;
 
 public class NDS
 {
 	public NDS() { }
-	public NDS(byte[] data) throws IOException
+	public NDS(ByteProvider provider/*byte[] data*/) throws IOException
 	{
 		//EndianBinaryReader er = new EndianBinaryReader(new MemoryStream(data), Endianness.LittleEndian);
 		
-		ByteArrayProvider provider = new ByteArrayProvider(data);  
+		//ByteArrayProvider provider = new ByteArrayProvider(data);  
 		BinaryReader er = new BinaryReader(provider, true); //little endian :)
 		
 		
@@ -27,11 +28,11 @@ public class NDS
 		//er.BaseStream.Position = Header.MainRomOffset; //sets the stream pointer (aka position)
 		
 
-		
 		MainRom = er.readNextByteArray(Header.MainSize);
-		if (er.readNextInt() == 0xDEC00621)//Nitro Footer!
+		if (er.readNextInt() == 0xDEC00621)//Nitro Footer! (Pedro: NitroFooter is loaded correctly)
 		{
 			//er.BaseStream.Position -= 4;
+			//System.out.println("Debug: " + er.getPointerIndex() + " vs " + (er.getPointerIndex()-4));
 			er.setPointerIndex(er.getPointerIndex()-4);
 			StaticFooter = new NitroFooter(er);
 		}
@@ -107,6 +108,7 @@ public class NDS
 			int index = 0;
 			
 			GameName = er.readAsciiString(index, 12); index+=12;
+			System.out.println("GameName: "+GameName); ////////////////////delete me
 			GameCode = er.readAsciiString(index, 4); index+=4;
 			MakerCode = er.readAsciiString(index, 2); index+=2;
 			ProductId = er.readByte(index); index++;
@@ -120,6 +122,7 @@ public class NDS
 			MainEntryAddress = er.readInt(index); index+=4;
 			MainRamAddress = er.readInt(index); index+=4;
 			MainSize = er.readInt(index); index+=4;
+			System.out.println("MAINSIZE: "+MainSize); ////////////////////delete me
 			SubRomOffset = er.readInt(index); index+=4;
 			SubEntryAddress = er.readInt(index); index+=4;
 			SubRamAddress = er.readInt(index); index+=4;
@@ -228,16 +231,19 @@ public class NDS
 
 	public class NitroFooter
 	{
+		public int NitroCode;
+		public int _start_ModuleParamsOffset;
+		public int Unknown;
+		
 		public NitroFooter() { }
 		public NitroFooter(BinaryReader er) throws IOException
 		{
 			NitroCode = er.readNextInt();
+			System.out.println("NitroFooter: " + NitroCode + " expected: " + 0xDEC00621);
 			_start_ModuleParamsOffset = er.readNextInt();
 			Unknown = er.readNextInt();
 		}
-		public int NitroCode;
-		public int _start_ModuleParamsOffset;
-		public int Unknown;
+		
 	}
 	
 	public byte[] SubRom;
@@ -252,8 +258,10 @@ public class NDS
 	public byte[] GetDecompressedARM9()
 	{
 		//StaticFooter = new NitroFooter(er);
-		if (StaticFooter != null) return ARM9.Decompress(MainRom, StaticFooter._start_ModuleParamsOffset);
-		else return ARM9.Decompress(MainRom);
+		if (StaticFooter != null) 
+			return ARM9.Decompress(MainRom, StaticFooter._start_ModuleParamsOffset);
+		
+		return ARM9.Decompress(MainRom);
 	}
 
 }

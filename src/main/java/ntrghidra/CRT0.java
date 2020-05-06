@@ -75,6 +75,7 @@ public class CRT0
 
 	public static byte[] MIi_UncompressBackward(byte[] Data)
 	{
+		//Reads the end of the Data[], exactly the last 4 bytes, which are the length
 		int leng = IOUtil.ReadU32LE(Data, Data.length - 4) + Data.length;
 		byte[] Result = new byte[leng];
 		
@@ -82,27 +83,23 @@ public class CRT0
 		//Array.Copy(Data, Result, Data.length);
 		Result = Arrays.copyOf(Data, Data.length);
 		
-		
-		int Offs = (Data.length - (IOUtil.ReadU32LE(Data, Data.length - 8) >> 24));
+		int Offs = (int)(Data.length - (IOUtil.ReadU32LE(Data, Data.length - 8) >> 24));
+		System.out.println("Offs: " + Offs);
 		int dstoffs = leng;
 		while (true)
 		{
-			Offs-=2;
-			byte header = Result[Offs];
+			
+			byte header = Result[--Offs];
 			for (int i = 0; i < 8; i++)
 			{
 				if ((header & 0x80) == 0)
 				{
-					Offs--;
-					dstoffs--;
-					Result[dstoffs] = Result[Offs];
+					Result[--dstoffs] = Result[--Offs];
 				}
 				else
 				{
-					Offs--;
-					byte a = Result[Offs];
-					Offs--;
-					byte b = Result[Offs];
+					byte a = Result[--Offs];
+					byte b = Result[--Offs];
 					int offs = (((a & 0xF) << 8) | b) + 2;//+ 1;
 					int length = (a >> 4) + 2;
 					do
@@ -113,7 +110,10 @@ public class CRT0
 					}
 					while (length >= 0);
 				}
-				if (Offs <= (Data.length - (IOUtil.ReadU32LE(Data, Data.length - 8) & 0xFFFFFF))) return Result;
+				
+				if (Offs <= (Data.length - (IOUtil.ReadU32LE(Data, Data.length - 8) & 0xFFFFFF))) 
+					return Result;
+				
 				header <<= 1;
 			}
 		}

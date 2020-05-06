@@ -2,6 +2,8 @@ package ntrghidra;
 
 public class IOUtil {
 
+	
+	//Is this ok?
 	public static int ReadU32LE(byte[] Data, int Offset)
 	{
 		return (Data[Offset] | (Data[Offset + 1] << 8) | (Data[Offset + 2] << 16) | (Data[Offset + 3] << 24));
