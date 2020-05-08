@@ -1,12 +1,23 @@
 package ntrghidra;
 
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+
 public class IOUtil {
 
 	
 	//Is this ok?
-	public static int ReadU32LE(byte[] Data, int Offset)
+	public static Integer ReadU32LE(byte[] Data, int Offset)
 	{
-		return (Data[Offset] | (Data[Offset + 1] << 8) | (Data[Offset + 2] << 16) | (Data[Offset + 3] << 24));
+		ByteBuffer bb = ByteBuffer.wrap(Data);
+		bb.order( ByteOrder.LITTLE_ENDIAN);
+		return bb.getInt(Offset);
+		//return ((byte)Data[Offset] | (byte)(Data[Offset + 1] << 8) | (byte)(Data[Offset + 2] << 16) | (byte)(Data[Offset + 3] << 24));
+	}
+	
+	public static int ReadU32BE(byte[] Data, int Offset)
+	{
+		return (Data[Offset] | (Data[Offset + 1]) | (Data[Offset + 2]) | (Data[Offset + 3]));
 	}
 	
 	public static void WriteU32LE(byte[] Data, int Offset, int Value)

@@ -20,12 +20,12 @@ Provided is an Eclipse project to debug and build the loader. You must have a Gh
 
 # Features
  - [x] Load NTR format files (usually .nds extension). At the moment ARM7 support is perfect but ARM9 requires decompression to be really useful.
- 
+ - [x] Can decompress Nintendo SDK ARM9 code!
+ - [x] Memory Map support (I/O memory with names)
+
 # Work in progress features
- - [ ] SDK Decompression (almost there)
  - [ ] SDK autoloading
- 
-# Todo
- - [ ] Multiple language support for dialogs
- - [x] Add IO memory with names
- - [ ] Function signatures for nitro/twl sdk functions
+ - [ ] Overlay Loading Support
+
+# Acknowledgements
+Thanks to Gericom for the original C# ARM9 decompression code from EFE(Every File Explorer).

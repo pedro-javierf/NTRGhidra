@@ -56,18 +56,6 @@ public class NTRGhidraLoader extends AbstractLibrarySupportLoader {
 	private boolean chosenCPU;
 	private boolean usesNintendoSDK;
 	
-	/* NOT YET IMPLEMENTED
-	//Labels for registers and other similar addresses of interest
-	private static class RegLabel {
-		String label;
-		int addr;
-		private RegLabel(String label, int addr) {
-			this.label = label;
-			this.addr = addr;
-		}
-		
-	}*/
-	
 	@Override
 	public String getName() {
 
@@ -164,16 +152,7 @@ public class NTRGhidraLoader extends AbstractLibrarySupportLoader {
 				int arm9_ram_base = reader.readInt(0x028);
 				int arm9_size = reader.readInt(0x02C);
 				
-				// Main RAM block: has to be created without the Flat API.
-				ghidra.program.model.address.Address addr = program.getAddressFactory().getDefaultAddressSpace().getAddress(arm9_ram_base);
-				MemoryBlock block = mem.createInitializedBlock("ARM9 Main Memory", addr, arm9_size, (byte)0x00, monitor, false);	
-				
-				//Set properties
-				block.setRead(true);
-				block.setWrite(true);
-				block.setExecute(true);
-				
-				//Work In Progress
+					
 				if(usesNintendoSDK) //try to apply decompression
 				{
 					try {
@@ -182,7 +161,17 @@ public class NTRGhidraLoader extends AbstractLibrarySupportLoader {
 						//byte romBytes[] = provider.readBytes(arm9_file_offset, arm9_size); 
 						
 						//decompress and obtain abother blob
-						byte decompressedBytes[] = new NDS(provider).GetDecompressedARM9();
+						NDS ndsManager = new NDS(provider);
+						byte decompressedBytes[] = ndsManager.GetDecompressedARM9();
+						
+						/// Main RAM block: has to be created without the Flat API.
+						ghidra.program.model.address.Address addr = program.getAddressFactory().getDefaultAddressSpace().getAddress(arm9_ram_base);
+						MemoryBlock block = mem.createInitializedBlock("ARM9 Main Memory", addr, decompressedBytes.length, (byte)0x00, monitor, false);
+						
+						//Set properties
+						block.setRead(true);
+						block.setWrite(true);
+						block.setExecute(true);
 						
 						//Fill the main memory segment with the decompressed data/code.
 						mem.setBytes(api.toAddr(arm9_ram_base), decompressedBytes);
@@ -197,6 +186,16 @@ public class NTRGhidraLoader extends AbstractLibrarySupportLoader {
 				{
 					//read arm9 blob
 					byte romBytes[] = provider.readBytes(arm9_file_offset, arm9_size); 
+					
+					/// Main RAM block: has to be created without the Flat API.
+					ghidra.program.model.address.Address addr = program.getAddressFactory().getDefaultAddressSpace().getAddress(arm9_ram_base);
+					MemoryBlock block = mem.createInitializedBlock("ARM9 Main Memory", addr, arm9_size, (byte)0x00, monitor, false);
+					
+					//Set properties
+					block.setRead(true);
+					block.setWrite(true);
+					block.setExecute(true);
+					
 					//Fill the main memory segment with the data from the binary directly
 					mem.setBytes(api.toAddr(arm9_ram_base), romBytes);
 				}

@@ -75,16 +75,23 @@ public class CRT0
 
 	public static byte[] MIi_UncompressBackward(byte[] Data)
 	{
+		int r = 0;
+		
 		//Reads the end of the Data[], exactly the last 4 bytes, which are the length
 		int leng = IOUtil.ReadU32LE(Data, Data.length - 4) + Data.length;
+
 		byte[] Result = new byte[leng];
 		
 		
 		//Array.Copy(Data, Result, Data.length);
-		Result = Arrays.copyOf(Data, Data.length);
+		//Result = Arrays.copyOf(Data, Data.length);
 		
-		int Offs = (int)(Data.length - (IOUtil.ReadU32LE(Data, Data.length - 8) >> 24));
-		System.out.println("Offs: " + Offs);
+		//Copy the array without resizing it.
+		for (int i=0; i<Data.length; i++) 
+	            Result[i] = Data[i]; 
+		
+		int Offs = (int)(Data.length - (IOUtil.ReadU32LE(Data, Data.length - 8) >>> 24));
+
 		int dstoffs = leng;
 		while (true)
 		{
@@ -101,7 +108,12 @@ public class CRT0
 					byte a = Result[--Offs];
 					byte b = Result[--Offs];
 					int offs = (((a & 0xF) << 8) | b) + 2;//+ 1;
-					int length = (a >> 4) + 2;
+					
+					//Right shifting in Java is only for ints and longs. If you try to shift a byte 
+					//it will be first casted into an int, so if it's negative, it will be 1-extended
+					//For that reason I zero'ed the left bits that may have been 1-extended.
+					
+					int length = ((   (0x000000FF & (int)a) >>> 4) + 2);
 					do
 					{
 						Result[dstoffs - 1] = Result[dstoffs + offs];
@@ -114,7 +126,7 @@ public class CRT0
 				if (Offs <= (Data.length - (IOUtil.ReadU32LE(Data, Data.length - 8) & 0xFFFFFF))) 
 					return Result;
 				
-				header <<= 1;
+				header = (byte) (header << 1);
 			}
 		}
 	}

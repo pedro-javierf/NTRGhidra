@@ -253,7 +253,10 @@ public class NDS
 	public byte[] RSASignature;
 	
 
-
+	public int getHeaderMainSize()
+	{
+		return Header.MainSize;
+	}
 
 	public byte[] GetDecompressedARM9()
 	{
