@@ -21,30 +21,17 @@ import java.util.*;
 import docking.widgets.OptionDialog;
 import ghidra.app.util.Option;
 import ghidra.app.util.bin.BinaryReader;
-import ghidra.app.util.bin.ByteArrayProvider;
 import ghidra.app.util.bin.ByteProvider;
 import ghidra.app.util.importer.MessageLog;
 import ghidra.app.util.opinion.AbstractLibrarySupportLoader;
 import ghidra.app.util.opinion.LoadSpec;
-import ghidra.app.util.opinion.QueryOpinionService;
-import ghidra.app.util.opinion.QueryResult;
-import ghidra.framework.model.DomainObject;
-import ghidra.framework.store.LockException;
-import ghidra.pcodeCPort.address.Address;
 import ghidra.program.flatapi.FlatProgramAPI;
-//import ghidra.program.model.address.Address;
-import ghidra.program.model.address.AddressSet;
 import ghidra.program.model.lang.LanguageCompilerSpecPair;
 import ghidra.program.model.listing.Program;
 import ghidra.program.model.mem.Memory;
 import ghidra.program.model.mem.MemoryBlock;
-import ghidra.program.model.mem.MemoryConflictException;
-import ghidra.program.model.symbol.SourceType;
-import ghidra.util.HTMLUtilities;
 import ghidra.util.exception.CancelledException;
-import ghidra.util.exception.DuplicateNameException;
 import ghidra.util.task.TaskMonitor;
-import ntrghidra.NDS.RomHeader;
 import ntrghidra.NDSLabelList.NDSLabel;
 import ntrghidra.NDSMemRegionList.NDSMemRegion;
 
@@ -73,8 +60,8 @@ public class NTRGhidraLoader extends AbstractLibrarySupportLoader {
 					null,
 					"Choose CPU",
 					message,
-					"<html> (<font color=\"red\">ARM7</font>)",
-					"<html> (<font color=\"green\">ARM9</font>)",
+					"<html> <font color=\"red\">ARM7</font>",
+					"<html> <font color=\"green\">ARM9</font>",
 					OptionDialog.QUESTION_MESSAGE);
 		//@formatter:on
 
@@ -95,8 +82,8 @@ public class NTRGhidraLoader extends AbstractLibrarySupportLoader {
 					null,
 					"Comercial ROM or Homebrew?",
 					message,
-					"<html> (<font color=\"red\">NO</font>)",
-					"<html> (<font color=\"green\">YES</font>)",
+					"<html> <font color=\"red\">NO</font>",
+					"<html> <font color=\"green\">YES</font>",
 					OptionDialog.QUESTION_MESSAGE);
 		//@formatter:on
 
@@ -111,13 +98,11 @@ public class NTRGhidraLoader extends AbstractLibrarySupportLoader {
 		// In this callback loader should decide whether it able to process the file and return instance of the class LoadSpec, telling user how file can be processed*/
 		
 		BinaryReader reader = new BinaryReader(provider, true);
-		boolean targetCPU;
 		
 		if ((reader.readInt(0x15C) & 0x0000FFFF) == (0xCF56))
 		{
 			//Nintendo DS has two CPUs. Ask the user which code he/she wants to work with, the ARM7 one or the ARM9 one.
 			this.chosenCPU = promptToAskCPU();
-
 			
 			//Decompression only makes sense for ARM9
 			if(!chosenCPU)
@@ -262,8 +247,5 @@ public class NTRGhidraLoader extends AbstractLibrarySupportLoader {
 			//System.out.println(e.getStackTrace()[0].getLineNumber());
 			log.appendException(e);
 		}
-		
 	}
-
-	
 }

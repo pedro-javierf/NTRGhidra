@@ -22,7 +22,7 @@ public class CRT0
 			NitroCodeLE = IOUtil.ReadU32LE(Data, (int)Offset + 32);
 		}
 		
-		public void Write(/*EndianBinaryWriter*/DataOutputStream er) throws IOException
+		public void Write(DataOutputStream er) throws IOException
 		{
 			er.writeInt(AutoLoadListOffset);
 			er.writeInt(AutoLoadListEnd);
@@ -81,10 +81,6 @@ public class CRT0
 		int leng = IOUtil.ReadU32LE(Data, Data.length - 4) + Data.length;
 
 		byte[] Result = new byte[leng];
-		
-		
-		//Array.Copy(Data, Result, Data.length);
-		//Result = Arrays.copyOf(Data, Data.length);
 		
 		//Copy the array without resizing it.
 		for (int i=0; i<Data.length; i++) 
