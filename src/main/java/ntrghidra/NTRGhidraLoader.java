@@ -40,6 +40,7 @@ import ntrghidra.NDSMemRegionList.NDSMemRegion;
  */
 public class NTRGhidraLoader extends AbstractLibrarySupportLoader {
 
+	private final String versionStr = "v1.2";
 	private boolean chosenCPU;
 	private boolean usesNintendoSDK;
 	
@@ -53,7 +54,7 @@ public class NTRGhidraLoader extends AbstractLibrarySupportLoader {
 
 	protected boolean promptToAskCPU() {
 
-		String message = "<html>You have loaded what looks like a Nintendo DS program. <br><br> Nintendo DS binaries contain code for the two CPUs:<br> ARM7 code: Usually handles audio, touch screen, cryptography, etc. <br> ARM9 code: Runs game code, graphics, etc. <br><br> Which one would you like to load? \"";
+		String message = "<html>You have loaded what looks like a Nintendo DS program. <br><br> Nintendo DS binaries contain code for the two CPUs:<br> ARM7 code: Usually handles audio, touch screen, cryptography, etc. <br> ARM9 code: Runs game code, graphics, etc. <br><br> NTRGhidra version " + versionStr + " can work with both.<br>Which one would you like to load? \"";
 		//@formatter:off
 			int choice =
 					OptionDialog.showOptionNoCancelDialog(
