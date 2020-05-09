@@ -4,6 +4,8 @@ A Nintendo DS Loader for Ghidra
 
 ![NTRGhidra a Nintendo DS Loader for Ghidra](https://media.defense.gov/2019/Apr/04/2002109557/-1/-1/0/190404-D-IM742-1002.PNG)
 
+# License
+NTRGhidra is released under the ![Apache License 2.0](https://github.com/pedro-javierf/NTRGhidra/blob/master/LICENSE).
 
 # Installation
 
@@ -19,6 +21,8 @@ If you just want to install the loader into a existing Ghidra installation:
 # Source and Build
 
 Provided is an Eclipse project to debug and build the loader. You must have a Ghidra installation as well as the Ghidra Eclipse extension.
+
+To export a build of the project in Eclipse select File > Export and then choose Ghidra > Ghidra Module Extension
 
 # Features
  - [x] Load NTR format files (usually .nds extension). At the moment ARM7 support is perfect but ARM9 requires decompression to be really useful.
