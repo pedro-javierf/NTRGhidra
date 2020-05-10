@@ -40,7 +40,7 @@ import ntrghidra.NDSMemRegionList.NDSMemRegion;
  */
 public class NTRGhidraLoader extends AbstractLibrarySupportLoader {
 
-	private final String versionStr = "v1.2";
+	private final String versionStr = "v1.3";
 	private boolean chosenCPU;
 	private boolean usesNintendoSDK;
 	
