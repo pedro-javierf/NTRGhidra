@@ -103,7 +103,7 @@ public class CRT0
 				{
 					byte a = Result[--Offs];
 					byte b = Result[--Offs];
-					int offs = (((a & 0xF) << 8) | b) + 2;//+ 1;
+					int offs = ((((0x000000FF & (int)a) & 0xF) << 8) | (0x000000FF &(int)b)) + 2;//+ 1;
 					
 					//Right shifting in Java is only for ints and longs. If you try to shift a byte 
 					//it will be first casted into an int, so if it's negative, it will be 1-extended
