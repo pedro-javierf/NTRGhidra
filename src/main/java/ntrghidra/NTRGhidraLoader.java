@@ -26,6 +26,7 @@ import ghidra.app.util.importer.MessageLog;
 import ghidra.app.util.opinion.AbstractLibrarySupportLoader;
 import ghidra.app.util.opinion.LoadSpec;
 import ghidra.program.flatapi.FlatProgramAPI;
+import ghidra.program.model.address.Address;
 import ghidra.program.model.lang.LanguageCompilerSpecPair;
 import ghidra.program.model.listing.Program;
 import ghidra.program.model.mem.Memory;
@@ -49,7 +50,7 @@ public class NTRGhidraLoader extends AbstractLibrarySupportLoader {
 
 		// TODO: Name the loader.  This name must match the name of the loader in the .opinion 
 		// files.
-		return "Nintendo DS (NTR)";
+		return "Nintendo DS (NTR) and DSi (TWL)";
 	}
 
 	protected boolean promptToAskCPU() {
@@ -143,15 +144,14 @@ public class NTRGhidraLoader extends AbstractLibrarySupportLoader {
 				{
 					try {
 						
-						//read arm9 blob
-						//byte romBytes[] = provider.readBytes(arm9_file_offset, arm9_size); 
-						
-						//decompress and obtain abother blob
+						//Reads the NDS header in detail
 						NDS ndsManager = new NDS(provider);
+						
+						//Get decompressed blob
 						byte decompressedBytes[] = ndsManager.GetDecompressedARM9();
 						
 						/// Main RAM block: has to be created without the Flat API.
-						ghidra.program.model.address.Address addr = program.getAddressFactory().getDefaultAddressSpace().getAddress(arm9_ram_base);
+						Address addr = program.getAddressFactory().getDefaultAddressSpace().getAddress(arm9_ram_base);
 						MemoryBlock block = mem.createInitializedBlock("ARM9 Main Memory", addr, decompressedBytes.length, (byte)0x00, monitor, false);
 						
 						//Set properties
@@ -174,7 +174,7 @@ public class NTRGhidraLoader extends AbstractLibrarySupportLoader {
 					byte romBytes[] = provider.readBytes(arm9_file_offset, arm9_size); 
 					
 					/// Main RAM block: has to be created without the Flat API.
-					ghidra.program.model.address.Address addr = program.getAddressFactory().getDefaultAddressSpace().getAddress(arm9_ram_base);
+					Address addr = program.getAddressFactory().getDefaultAddressSpace().getAddress(arm9_ram_base);
 					MemoryBlock block = mem.createInitializedBlock("ARM9 Main Memory", addr, arm9_size, (byte)0x00, monitor, false);
 					
 					//Set properties
@@ -213,7 +213,7 @@ public class NTRGhidraLoader extends AbstractLibrarySupportLoader {
 				int arm7_size = reader.readInt(0x03C);
 				
 				//Create ARM7 Memory Map
-				ghidra.program.model.address.Address addr = program.getAddressFactory().getDefaultAddressSpace().getAddress(arm7_ram_base);
+				Address addr = program.getAddressFactory().getDefaultAddressSpace().getAddress(arm7_ram_base);
 				MemoryBlock block = program.getMemory().createInitializedBlock("ARM7 Main Memory", addr, arm7_size, (byte)0x00, monitor, false);	
 				
 				//Set properties

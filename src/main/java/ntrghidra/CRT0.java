@@ -75,8 +75,6 @@ public class CRT0
 
 	public static byte[] MIi_UncompressBackward(byte[] Data)
 	{
-		int r = 0;
-		
 		//Reads the end of the Data[], exactly the last 4 bytes, which are the length
 		int leng = IOUtil.ReadU32LE(Data, Data.length - 4) + Data.length;
 
@@ -103,11 +101,12 @@ public class CRT0
 				{
 					byte a = Result[--Offs];
 					byte b = Result[--Offs];
-					int offs = ((((0x000000FF & (int)a) & 0xF) << 8) | (0x000000FF &(int)b)) + 2;//+ 1;
 					
-					//Right shifting in Java is only for ints and longs. If you try to shift a byte 
+					//Right shifting in Java is only really supported for ints and longs. If you try to shift a byte 
 					//it will be first casted into an int, so if it's negative, it will be 1-extended
 					//For that reason I zero'ed the left bits that may have been 1-extended.
+					
+					int offs = ((((0x000000FF & (int)a) & 0xF) << 8) | (0x000000FF &(int)b)) + 2;//+ 1;
 					
 					int length = ((   (0x000000FF & (int)a) >>> 4) + 2);
 					do

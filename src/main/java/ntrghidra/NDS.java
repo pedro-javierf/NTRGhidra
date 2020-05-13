@@ -17,6 +17,8 @@ public class NDS
 	public byte[] RSASignature;
 	public RomHeader Header;
 	public byte[] MainRom;
+	public RomOVT[] MainOvt;
+	public RomOVT[] SubOvt;
 	
 	public NDS() { }
 	public NDS(ByteProvider provider/*byte[] data*/) throws IOException
@@ -37,19 +39,23 @@ public class NDS
 		er.setPointerIndex(Header.SubRomOffset);
 		SubRom = er.readNextByteArray(Header.SubSize);
 
-		er.setPointerIndex(Header.FntOffset);
+		//er.setPointerIndex(Header.FntOffset);
 		//er.BaseStream.Position = Header.FntOffset;
 		//Fnt = new RomFNT(er);
 
+		//	Populate the overlay tables
+		
 		er.setPointerIndex(Header.MainOvtOffset);
 		//er.BaseStream.Position = Header.MainOvtOffset;
-		//MainOvt = new RomOVT[Header.MainOvtSize / 32];
-		//for (int i = 0; i < Header.MainOvtSize / 32; i++) MainOvt[i] = new RomOVT(er);
+		MainOvt = new RomOVT[Header.MainOvtSize / 32];
+		for (int i = 0; i < Header.MainOvtSize / 32; i++) 
+			MainOvt[i] = new RomOVT(er);
 
 		er.setPointerIndex(Header.SubOvtOffset);
 		//er.BaseStream.Position = Header.SubOvtOffset;
-		//SubOvt = new RomOVT[Header.SubOvtSize / 32];
-		//for (int i = 0; i < Header.SubOvtSize / 32; i++) SubOvt[i] = new RomOVT(er);
+		SubOvt = new RomOVT[Header.SubOvtSize / 32];
+		for (int i = 0; i < Header.SubOvtSize / 32; i++) 
+			SubOvt[i] = new RomOVT(er);
 
 		er.setPointerIndex(Header.FatOffset);
 		//er.BaseStream.Position = Header.FatOffset;
@@ -213,6 +219,56 @@ public class NDS
 			
 		}
 		
+		
+		public static class RomOVT
+		{
+			public int Id;
+			public int RamAddress;
+			public int RamSize;
+			public int BssSize;
+			public int SinitInit;
+			public int SinitInitEnd;
+
+			public int FileId;
+
+			public int Compressed;//:24;
+
+			public OVTFlag Flag;// :8;
+			
+			public static enum OVTFlag
+			{
+				Compressed(1),
+				AuthenticationCode(2);
+
+				private int numVal;
+				
+				OVTFlag(int i) {
+					numVal = i;
+				}
+				public int getNumVal() {
+			        return numVal;
+			    }
+			}
+			
+			public RomOVT() { }
+			public RomOVT(BinaryReader er) throws IOException
+			{
+				
+				Id = er.readNextInt();
+				RamAddress = er.readNextInt();
+				RamSize = er.readNextInt();
+				BssSize = er.readNextInt();
+				SinitInit = er.readNextInt();
+				SinitInitEnd = er.readNextInt();
+				FileId = er.readNextInt();
+				int tmp = er.readNextInt();
+				Compressed = tmp & 0xFFFFFF;
+				Flag = OVTFlag.values()[(tmp >> 24)];
+			}
+
+			
+		}
+		
 	//=================
 	
 	
@@ -222,6 +278,16 @@ public class NDS
 		return Header.MainSize;
 	}
 
+	public RomOVT[] getMainOVT()
+	{
+		return MainOvt;
+	}
+	
+	public RomOVT[] getSubOVT()
+	{
+		return SubOvt;
+	}
+	
 	public byte[] GetDecompressedARM9()
 	{
 		if (StaticFooter != null) 

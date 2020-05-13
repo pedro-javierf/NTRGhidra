@@ -38,7 +38,8 @@ public class NDSMemRegionList {
 	private NDSMemRegionList()
 	{	
 		//ARM9
-		_ARM9regions.add(new NDSMemRegion("Shared WRAM",0x03000000,0x01000000,true,false,false));
+		//Main Memory is found on NTRGhidraLoader.java
+		_ARM9regions.add(new NDSMemRegion("Shared WRAM",0x03000000,0x00008000,true,false,false));
 		_ARM9regions.add(new NDSMemRegion("ARM9 I/O Ports",0x04000000,0x01000000,true,false,false));
 		_ARM9regions.add(new NDSMemRegion("Standard Palettes",0x05000000,0x01000000,true,false,false));
 		_ARM9regions.add(new NDSMemRegion("VRAM - Engine A BG VRAM",0x06000000,0x00200000,true,false,false));
@@ -48,8 +49,8 @@ public class NDSMemRegionList {
 		_ARM9regions.add(new NDSMemRegion("VRAM - LCDC",0x06800000,0x00200000,true,false,false));
 		
 		//ARM7
-		_ARM7regions.add(new NDSMemRegion("Shared WRAM",0x03000000,0x00800000,true,false,false));
-		_ARM7regions.add(new NDSMemRegion("ARM7 WRAM (Private memory?)",0x03800000,0x00200000,true,false,false));
+		_ARM7regions.add(new NDSMemRegion("Shared WRAM",0x03000000,0x00008000,true,false,false));
+		_ARM7regions.add(new NDSMemRegion("ARM7 WRAM (Private memory?)",0x03800000,0x00010000,true,false,false));
 		_ARM7regions.add(new NDSMemRegion("ARM7 I/O Ports",0x04000000,0x00800000,true,false,false));
 		_ARM7regions.add(new NDSMemRegion("Wireless Communications Wait State 0 (8KB RAM at 4804000h)",0x04800000,0x00008000,true,false,false));
 		_ARM7regions.add(new NDSMemRegion("Wireless Communications Wait State 1 (I/O Ports at 4808000h)",0x04808000,0x00200000,true,false,false));
