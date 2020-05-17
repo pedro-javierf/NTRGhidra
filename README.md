@@ -25,7 +25,7 @@ Provided is an Eclipse project to debug and build the loader. You must have a Gh
 To export a build of the project in Eclipse select File > Export and then choose Ghidra > Ghidra Module Extension
 
 # Features
- - [x] Load NTR format files (usually .nds extension). At the moment ARM7 support is perfect but ARM9 requires decompression to be really useful.
+ - [x] Load NTR format files (usually .nds extension).
  - [x] Can decompress Nintendo SDK ARM9 code!
  - [x] Memory Map support (I/O memory with names)
 -  [x] Overlay Loading Support
