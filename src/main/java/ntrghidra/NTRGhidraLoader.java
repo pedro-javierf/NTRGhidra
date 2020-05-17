@@ -16,6 +16,7 @@
 package ntrghidra;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.*;
 
 import docking.widgets.OptionDialog;
@@ -27,21 +28,26 @@ import ghidra.app.util.opinion.AbstractLibrarySupportLoader;
 import ghidra.app.util.opinion.LoadSpec;
 import ghidra.program.flatapi.FlatProgramAPI;
 import ghidra.program.model.address.Address;
+import ghidra.program.model.address.AddressOverflowException;
 import ghidra.program.model.lang.LanguageCompilerSpecPair;
 import ghidra.program.model.listing.Program;
 import ghidra.program.model.mem.Memory;
 import ghidra.program.model.mem.MemoryBlock;
 import ghidra.util.exception.CancelledException;
 import ghidra.util.task.TaskMonitor;
+import ntrghidra.NDS.RomHeader;
+import ntrghidra.NDS.RomOVT;
 import ntrghidra.NDSLabelList.NDSLabel;
 import ntrghidra.NDSMemRegionList.NDSMemRegion;
+
+import static ghidra.app.util.MemoryBlockUtils.createInitializedBlock;
 
 /**
  * TODO: Provide class-level documentation that describes what this loader does.
  */
 public class NTRGhidraLoader extends AbstractLibrarySupportLoader {
 
-	private final String versionStr = "v1.3";
+	private final String versionStr = "v1.4";
 	private boolean chosenCPU;
 	private boolean usesNintendoSDK;
 	
@@ -126,7 +132,10 @@ public class NTRGhidraLoader extends AbstractLibrarySupportLoader {
 		FlatProgramAPI api = new FlatProgramAPI(program, monitor);
 		Memory mem = program.getMemory();
 		monitor.setMessage("Loading Nintendo DS (NTR) binary...");	
-				
+		
+		//Handles the NDS format in detail
+		NDS ndsManager = new NDS(provider);
+		
 		try
 		{
 			if(!chosenCPU) //ARM9
@@ -139,13 +148,11 @@ public class NTRGhidraLoader extends AbstractLibrarySupportLoader {
 				int arm9_ram_base = reader.readInt(0x028);
 				int arm9_size = reader.readInt(0x02C);
 				
-					
+				
+				
 				if(usesNintendoSDK) //try to apply decompression
 				{
 					try {
-						
-						//Reads the NDS header in detail
-						NDS ndsManager = new NDS(provider);
 						
 						//Get decompressed blob
 						byte decompressedBytes[] = ndsManager.GetDecompressedARM9();
@@ -242,11 +249,65 @@ public class NTRGhidraLoader extends AbstractLibrarySupportLoader {
 				api.disassemble(api.toAddr(arm7_entrypoint));
 				api.createFunction(api.toAddr(arm7_entrypoint), "_entry_arm7");
 			}	
+			
+			//Load overlays (segments of memory that are usually loaded at the same address/regions)
+			loadOverlays(provider,program, ndsManager, log, api, monitor);
+			
 		}
-		catch(Exception e)
+		catch(IOException e)
 		{
-			//System.out.println(e.getStackTrace()[0].getLineNumber());
+			e.printStackTrace();
 			log.appendException(e);
 		}
+		catch(AddressOverflowException e)
+		{
+			log.appendException(e);
+		}
+		catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			log.appendException(e);
+		}
+	}
+
+	void loadOverlays(ByteProvider provider, Program program, NDS romparser, MessageLog log, FlatProgramAPI fpa, TaskMonitor monitor) throws IOException, AddressOverflowException{
+		BinaryReader reader = new BinaryReader(provider, true);
+		
+		int i = 0;
+		for(RomOVT overlay: romparser.getMainOVT())
+		{
+			try
+			{
+				int fatAddr = romparser.Header.FatOffset + (8 * overlay.FileId);
+				System.out.println("FATADDR: "+fatAddr);
+				InputStream stream = provider.getInputStream(reader.readInt(fatAddr));
+				createInitializedBlock(program, true, "overlay_"+i+"_"+overlay.Id, fpa.toAddr(overlay.RamAddress), stream, overlay.RamSize, "", "", true, true, true, log, monitor);
+				i++;
+			}
+			catch(IOException e)
+			{
+				System.err.println("overlay_"+i+"_"+overlay.Id+" incorrect.");
+			}
+		}
+		
+		i = 0;
+		for(RomOVT overlay: romparser.getSubOVT())
+		{
+			try
+			{
+				int fatAddr = romparser.Header.FatOffset + (8 * overlay.FileId);
+				System.out.println("FATADDR: "+fatAddr);
+				InputStream stream = provider.getInputStream(reader.readInt(fatAddr));
+				createInitializedBlock(program, true, "suboverlay_"+i+"_"+overlay.Id, fpa.toAddr(overlay.RamAddress), stream, overlay.RamSize, "", "", true, true, true, log, monitor);
+				i++;
+			}
+			catch(IOException e)
+			{
+				System.err.println("suboverlay_"+i+"_"+overlay.Id+" incorrect.");
+			}
+		}
+		
+		
+		
 	}
 }

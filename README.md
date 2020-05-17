@@ -28,10 +28,12 @@ To export a build of the project in Eclipse select File > Export and then choose
  - [x] Load NTR format files (usually .nds extension). At the moment ARM7 support is perfect but ARM9 requires decompression to be really useful.
  - [x] Can decompress Nintendo SDK ARM9 code!
  - [x] Memory Map support (I/O memory with names)
+-  [x] Overlay Loading Support
 
 # Work in progress features
  - [ ] SDK autoloading
- - [ ] Overlay Loading Support
+ - [ ] DSi (TWL) Support
+
 
 # Acknowledgements
-Thanks to Gericom for the original C# ARM9 decompression code from EFE(Every File Explorer).
+Thanks to Gericom for the original C# Header and ARM9 decompression code from EFE(Every File Explorer).

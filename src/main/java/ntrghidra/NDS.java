@@ -43,16 +43,15 @@ public class NDS
 		//er.BaseStream.Position = Header.FntOffset;
 		//Fnt = new RomFNT(er);
 
-		//	Populate the overlay tables
 		
+		
+		//	Populate the overlay tables
 		er.setPointerIndex(Header.MainOvtOffset);
-		//er.BaseStream.Position = Header.MainOvtOffset;
 		MainOvt = new RomOVT[Header.MainOvtSize / 32];
 		for (int i = 0; i < Header.MainOvtSize / 32; i++) 
 			MainOvt[i] = new RomOVT(er);
 
 		er.setPointerIndex(Header.SubOvtOffset);
-		//er.BaseStream.Position = Header.SubOvtOffset;
 		SubOvt = new RomOVT[Header.SubOvtSize / 32];
 		for (int i = 0; i < Header.SubOvtSize / 32; i++) 
 			SubOvt[i] = new RomOVT(er);
@@ -97,7 +96,6 @@ public class NDS
 			}
 		}
 		*/
-		//er.Close();
 	}
 
 	//Auxiliary Classes
@@ -127,7 +125,7 @@ public class NDS
 			public int FatOffset;
 			public int FatSize;
 			public int MainOvtOffset;
-			public int MainOvtSize;
+			public int MainOvtSize; //OverlayTable Size
 			public int SubOvtOffset;
 			public int SubOvtSize;
 			public byte[] RomParamA;//8
@@ -148,7 +146,7 @@ public class NDS
 			public RomHeader(BinaryReader er) throws IOException
 			{
 				int index = 0;
-				
+
 				GameName = er.readAsciiString(index, 12); index+=12;
 				GameCode = er.readAsciiString(index, 4); index+=4;
 				MakerCode = er.readAsciiString(index, 2); index+=2;
@@ -158,7 +156,6 @@ public class NDS
 				ReservedA = er.readByte(index);er.readByte(index);er.readByte(index);er.readByte(index);er.readByte(index);er.readByte(index);er.readByte(index);er.readByte(index);er.readByte(index); index+=9;
 				GameVersion = er.readByte(index); index++;
 				Property = er.readByte(index); index++;
-	
 				MainRomOffset = er.readInt(index); index+=4;
 				MainEntryAddress = er.readInt(index); index+=4;
 				MainRamAddress = er.readInt(index); index+=4;
@@ -167,7 +164,7 @@ public class NDS
 				SubEntryAddress = er.readInt(index); index+=4;
 				SubRamAddress = er.readInt(index); index+=4;
 				SubSize = er.readInt(index); index+=4;
-	
+
 				FntOffset = er.readInt(index); index+=4;
 				FntSize = er.readInt(index); index+=4;
 	
@@ -228,9 +225,7 @@ public class NDS
 			public int BssSize;
 			public int SinitInit;
 			public int SinitInitEnd;
-
 			public int FileId;
-
 			public int Compressed;//:24;
 
 			public OVTFlag Flag;// :8;
@@ -258,12 +253,13 @@ public class NDS
 				RamAddress = er.readNextInt();
 				RamSize = er.readNextInt();
 				BssSize = er.readNextInt();
-				SinitInit = er.readNextInt();
-				SinitInitEnd = er.readNextInt();
+				SinitInit = er.readNextInt(); //static start
+				SinitInitEnd = er.readNextInt(); //static end
 				FileId = er.readNextInt();
-				int tmp = er.readNextInt();
-				Compressed = tmp & 0xFFFFFF;
-				Flag = OVTFlag.values()[(tmp >> 24)];
+				
+				//int tmp = er.readNextInt();
+				//Compressed = tmp & 0xFFFFFF;
+				//Flag = OVTFlag.values()[(tmp >>> 24)];
 			}
 
 			
@@ -278,6 +274,16 @@ public class NDS
 		return Header.MainSize;
 	}
 
+	public int getMainOverlayTableOffset()
+	{
+		return Header.MainOvtOffset;
+	}
+	
+	public int getMainOverlayTableSize()
+	{
+		return Header.MainOvtSize;
+	}
+	
 	public RomOVT[] getMainOVT()
 	{
 		return MainOvt;
