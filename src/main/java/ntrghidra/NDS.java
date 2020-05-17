@@ -11,17 +11,191 @@ import ghidra.app.util.bin.ByteProvider;
 
 public class NDS
 {
+	public RomHeader Header;
 	public NitroFooter StaticFooter;
 	public byte[] SubRom;
 	public byte[][] FileData;
 	public byte[] RSASignature;
-	public RomHeader Header;
 	public byte[] MainRom;
 	public RomOVT[] MainOvt;
 	public RomOVT[] SubOvt;
 	
+	//Auxiliary Classes
+	//NOTE: SubRom refers to the ARM7 binary
+	
+	public class RomHeader
+	{
+		public String GameName;//12
+		public String GameCode;//4
+		public String MakerCode;//2
+		public Byte ProductId;
+		public Byte DeviceType;
+		public Byte DeviceSize;
+		public byte ReservedA;//9
+		public Byte GameVersion;
+		public Byte Property;
+
+		//Arm9
+		public int MainRomOffset;
+		public int MainEntryAddress;
+		public int MainRamAddress;
+		public int MainSize;
+		
+		//Arm7
+		public int SubRomOffset;
+		public int SubEntryAddress;
+		public int SubRamAddress;
+		public int SubSize;
+		
+		//???
+		public int FntOffset;
+		public int FntSize;
+		public int FatOffset;
+		public int FatSize;
+		
+		//Overlay Table
+		public int MainOvtOffset;
+		public int MainOvtSize; //OverlayTable Size
+		public int SubOvtOffset;
+		public int SubOvtSize;
+		
+		//Others
+		public byte[] RomParamA;//8
+		public int BannerOffset;
+		public short SecureCRC;
+		public byte[] RomParamB;//2
+		public int MainAutoloadDone;
+		public int SubAutoloadDone;
+		public byte[] RomParamC;//8
+		public int RomSize;
+		public int HeaderSize;
+		public byte[] ReservedB;//0x38
+		public byte[] LogoData;//0x9C
+		public short LogoCRC;
+		public short HeaderCRC;
+		
+		public RomHeader() { }
+		public RomHeader(BinaryReader er) throws IOException
+		{
+			int index = 0;
+
+			GameName = er.readAsciiString(index, 12); index+=12;
+			GameCode = er.readAsciiString(index, 4); index+=4;
+			MakerCode = er.readAsciiString(index, 2); index+=2;
+			ProductId = er.readByte(index); index++;
+			DeviceType = er.readByte(index); index++;
+			DeviceSize = er.readByte(index); index++;
+			ReservedA = er.readByte(index);er.readByte(index);er.readByte(index);er.readByte(index);er.readByte(index);er.readByte(index);er.readByte(index);er.readByte(index);er.readByte(index); index+=9;
+			GameVersion = er.readByte(index); index++;
+			Property = er.readByte(index); index++;
+			MainRomOffset = er.readInt(index); index+=4;
+			MainEntryAddress = er.readInt(index); index+=4;
+			MainRamAddress = er.readInt(index); index+=4;
+			MainSize = er.readInt(index); index+=4;
+			SubRomOffset = er.readInt(index); index+=4;
+			SubEntryAddress = er.readInt(index); index+=4;
+			SubRamAddress = er.readInt(index); index+=4;
+			SubSize = er.readInt(index); index+=4;
+
+			FntOffset = er.readInt(index); index+=4;
+			FntSize = er.readInt(index); index+=4;
+
+			FatOffset = er.readInt(index); index+=4;
+			FatSize = er.readInt(index); index+=4;
+
+			MainOvtOffset = er.readInt(index); index+=4;
+			MainOvtSize = er.readInt(index); index+=4;
+
+			SubOvtOffset = er.readInt(index); index+=4;
+			SubOvtSize = er.readInt(index); index+=4;
+
+			RomParamA = er.readByteArray(index, 8); index+=8;
+			BannerOffset = er.readInt(index); index+=4;
+			SecureCRC = er.readShort(index); index+=2;
+			RomParamB = er.readByteArray(index,2); index+=2;
+
+			MainAutoloadDone = er.readInt(index); index+=4;
+			SubAutoloadDone = er.readInt(index); index+=4;
+
+			RomParamC = er.readByteArray(index,8); index+=8;
+			RomSize = er.readInt(index); index+=4;
+			HeaderSize = er.readInt(index); index+=4;
+			ReservedB = er.readByteArray(index,0x38); index+=0x38;
+
+			LogoData = er.readByteArray(index,0x9C); index+=0x9C;
+			LogoCRC = er.readShort(index); index+=2;
+			HeaderCRC = er.readShort(index); index+=2;
+		}
+	}
+
+	public class NitroFooter
+	{
+		public int NitroCode;
+		public int _start_ModuleParamsOffset;
+		public int Unknown;
+		
+		public NitroFooter() { }
+		public NitroFooter(BinaryReader er) throws IOException
+		{
+			NitroCode = er.readNextInt();
+			_start_ModuleParamsOffset = er.readNextInt();
+			Unknown = er.readNextInt();
+		}
+		
+	}
+
+	public static class RomOVT
+			{
+				public int Id;
+				public int RamAddress;
+				public int RamSize;
+				public int BssSize;
+				public int SinitInit;
+				public int SinitInitEnd;
+				public int FileId;
+				public int Compressed;//:24;
+
+				public OVTFlag Flag;// :8;
+				
+				public static enum OVTFlag
+				{
+					Compressed(1),
+					AuthenticationCode(2);
+
+					private int numVal;
+					
+					OVTFlag(int i) {
+						numVal = i;
+					}
+					public int getNumVal() {
+				        return numVal;
+				    }
+				}
+				
+				public RomOVT() { }
+				public RomOVT(BinaryReader er) throws IOException
+				{
+					
+					Id = er.readNextInt();
+					RamAddress = er.readNextInt();
+					RamSize = er.readNextInt();
+					BssSize = er.readNextInt();
+					SinitInit = er.readNextInt(); //static start
+					SinitInitEnd = er.readNextInt(); //static end
+					FileId = er.readNextInt();
+					
+					//int tmp = er.readNextInt();
+					//Compressed = tmp & 0xFFFFFF;
+					//Flag = OVTFlag.values()[(tmp >>> 24)];
+				}
+
+				
+			}
+
+	//=================
+	
 	public NDS() { }
-	public NDS(ByteProvider provider/*byte[] data*/) throws IOException
+	public NDS(ByteProvider provider) throws IOException
 	{
 		//Little endian reader
 		BinaryReader er = new BinaryReader(provider, true); 
@@ -98,190 +272,9 @@ public class NDS
 		*/
 	}
 
-	//Auxiliary Classes
-	
-		public class RomHeader
-		{
-			public String GameName;//12
-			public String GameCode;//4
-			public String MakerCode;//2
-			public Byte ProductId;
-			public Byte DeviceType;
-			public Byte DeviceSize;
-			public byte ReservedA;//9
-			public Byte GameVersion;
-			public Byte Property;
-	
-			public int MainRomOffset;
-			public int MainEntryAddress;
-			public int MainRamAddress;
-			public int MainSize;
-			public int SubRomOffset;
-			public int SubEntryAddress;
-			public int SubRamAddress;
-			public int SubSize;
-			public int FntOffset;
-			public int FntSize;
-			public int FatOffset;
-			public int FatSize;
-			public int MainOvtOffset;
-			public int MainOvtSize; //OverlayTable Size
-			public int SubOvtOffset;
-			public int SubOvtSize;
-			public byte[] RomParamA;//8
-			public int BannerOffset;
-			public short SecureCRC;
-			public byte[] RomParamB;//2
-			public int MainAutoloadDone;
-			public int SubAutoloadDone;
-			public byte[] RomParamC;//8
-			public int RomSize;
-			public int HeaderSize;
-			public byte[] ReservedB;//0x38
-			public byte[] LogoData;//0x9C
-			public short LogoCRC;
-			public short HeaderCRC;
-			
-			public RomHeader() { }
-			public RomHeader(BinaryReader er) throws IOException
-			{
-				int index = 0;
-
-				GameName = er.readAsciiString(index, 12); index+=12;
-				GameCode = er.readAsciiString(index, 4); index+=4;
-				MakerCode = er.readAsciiString(index, 2); index+=2;
-				ProductId = er.readByte(index); index++;
-				DeviceType = er.readByte(index); index++;
-				DeviceSize = er.readByte(index); index++;
-				ReservedA = er.readByte(index);er.readByte(index);er.readByte(index);er.readByte(index);er.readByte(index);er.readByte(index);er.readByte(index);er.readByte(index);er.readByte(index); index+=9;
-				GameVersion = er.readByte(index); index++;
-				Property = er.readByte(index); index++;
-				MainRomOffset = er.readInt(index); index+=4;
-				MainEntryAddress = er.readInt(index); index+=4;
-				MainRamAddress = er.readInt(index); index+=4;
-				MainSize = er.readInt(index); index+=4;
-				SubRomOffset = er.readInt(index); index+=4;
-				SubEntryAddress = er.readInt(index); index+=4;
-				SubRamAddress = er.readInt(index); index+=4;
-				SubSize = er.readInt(index); index+=4;
-
-				FntOffset = er.readInt(index); index+=4;
-				FntSize = er.readInt(index); index+=4;
-	
-				FatOffset = er.readInt(index); index+=4;
-				FatSize = er.readInt(index); index+=4;
-	
-				MainOvtOffset = er.readInt(index); index+=4;
-				MainOvtSize = er.readInt(index); index+=4;
-	
-				SubOvtOffset = er.readInt(index); index+=4;
-				SubOvtSize = er.readInt(index); index+=4;
-				
-				
-	
-				RomParamA = er.readByteArray(index, 8); index+=8;
-				BannerOffset = er.readInt(index); index+=4;
-				SecureCRC = er.readShort(index); index+=2;
-				RomParamB = er.readByteArray(index,2); index+=2;
-	
-				MainAutoloadDone = er.readInt(index); index+=4;
-				SubAutoloadDone = er.readInt(index); index+=4;
-	
-				RomParamC = er.readByteArray(index,8); index+=8;
-				RomSize = er.readInt(index); index+=4;
-				HeaderSize = er.readInt(index); index+=4;
-				ReservedB = er.readByteArray(index,0x38); index+=0x38;
-	
-				LogoData = er.readByteArray(index,0x9C); index+=0x9C;
-				LogoCRC = er.readShort(index); index+=2;
-				HeaderCRC = er.readShort(index); index+=2;
-			}
-		}
-	
-	
-
-		public class NitroFooter
-		{
-			public int NitroCode;
-			public int _start_ModuleParamsOffset;
-			public int Unknown;
-			
-			public NitroFooter() { }
-			public NitroFooter(BinaryReader er) throws IOException
-			{
-				NitroCode = er.readNextInt();
-				_start_ModuleParamsOffset = er.readNextInt();
-				Unknown = er.readNextInt();
-			}
-			
-		}
-		
-		
-		public static class RomOVT
-		{
-			public int Id;
-			public int RamAddress;
-			public int RamSize;
-			public int BssSize;
-			public int SinitInit;
-			public int SinitInitEnd;
-			public int FileId;
-			public int Compressed;//:24;
-
-			public OVTFlag Flag;// :8;
-			
-			public static enum OVTFlag
-			{
-				Compressed(1),
-				AuthenticationCode(2);
-
-				private int numVal;
-				
-				OVTFlag(int i) {
-					numVal = i;
-				}
-				public int getNumVal() {
-			        return numVal;
-			    }
-			}
-			
-			public RomOVT() { }
-			public RomOVT(BinaryReader er) throws IOException
-			{
-				
-				Id = er.readNextInt();
-				RamAddress = er.readNextInt();
-				RamSize = er.readNextInt();
-				BssSize = er.readNextInt();
-				SinitInit = er.readNextInt(); //static start
-				SinitInitEnd = er.readNextInt(); //static end
-				FileId = er.readNextInt();
-				
-				//int tmp = er.readNextInt();
-				//Compressed = tmp & 0xFFFFFF;
-				//Flag = OVTFlag.values()[(tmp >>> 24)];
-			}
-
-			
-		}
-		
-	//=================
-	
-	
-
 	public int getHeaderMainSize()
 	{
 		return Header.MainSize;
-	}
-
-	public int getMainOverlayTableOffset()
-	{
-		return Header.MainOvtOffset;
-	}
-	
-	public int getMainOverlayTableSize()
-	{
-		return Header.MainOvtSize;
 	}
 	
 	public RomOVT[] getMainOVT()

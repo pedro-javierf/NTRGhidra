@@ -35,7 +35,6 @@ import ghidra.program.model.mem.Memory;
 import ghidra.program.model.mem.MemoryBlock;
 import ghidra.util.exception.CancelledException;
 import ghidra.util.task.TaskMonitor;
-import ntrghidra.NDS.RomHeader;
 import ntrghidra.NDS.RomOVT;
 import ntrghidra.NDSLabelList.NDSLabel;
 import ntrghidra.NDSMemRegionList.NDSMemRegion;
@@ -107,7 +106,8 @@ public class NTRGhidraLoader extends AbstractLibrarySupportLoader {
 		
 		BinaryReader reader = new BinaryReader(provider, true);
 		
-		if ((reader.readInt(0x15C) & 0x0000FFFF) == (0xCF56))
+		//Nintendo logo CRC
+		if ((reader.readUnsignedShort(0x15C)) == (0xCF56))
 		{
 			//Nintendo DS has two CPUs. Ask the user which code he/she wants to work with, the ARM7 one or the ARM9 one.
 			this.chosenCPU = promptToAskCPU();
@@ -125,16 +125,62 @@ public class NTRGhidraLoader extends AbstractLibrarySupportLoader {
 		return new ArrayList<>();
 	}
 	
+	void loadARM9Overlays(ByteProvider provider, Program program, NDS romparser, MessageLog log, FlatProgramAPI fpa, TaskMonitor monitor) throws IOException, AddressOverflowException{
+		BinaryReader reader = new BinaryReader(provider, true);
+		
+		int i = 0;
+		for(RomOVT overlay: romparser.getMainOVT())
+		{
+			try
+			{
+				int fatAddr = romparser.Header.FatOffset + (8 * overlay.FileId);
+				System.out.println("FATADDR: "+fatAddr);
+				InputStream stream = provider.getInputStream(reader.readInt(fatAddr));
+				createInitializedBlock(program, true, "overlay_"+i+"_"+overlay.Id, fpa.toAddr(overlay.RamAddress), stream, overlay.RamSize, "", "", true, true, true, log, monitor);
+				i++;
+			}
+			catch(IOException e)
+			{
+				System.err.println("overlay_"+i+"_"+overlay.Id+" incorrect.");
+			}
+		}
+	}
+	
+	
+
+	void loadARM7Overlays(ByteProvider provider, Program program, NDS romparser, MessageLog log, FlatProgramAPI fpa, TaskMonitor monitor) throws IOException, AddressOverflowException{
+		BinaryReader reader = new BinaryReader(provider, true);
+		
+		int i = 0;
+		i = 0;
+		for(RomOVT overlay: romparser.getSubOVT())
+		{
+			try
+			{
+				int fatAddr = romparser.Header.FatOffset + (8 * overlay.FileId);
+				System.out.println("FATADDR: "+fatAddr);
+				InputStream stream = provider.getInputStream(reader.readInt(fatAddr));
+				createInitializedBlock(program, true, "suboverlay_"+i+"_"+overlay.Id, fpa.toAddr(overlay.RamAddress), stream, overlay.RamSize, "", "", true, true, true, log, monitor);
+				i++;
+			}
+			catch(IOException e)
+			{
+				System.err.println("suboverlay_"+i+"_"+overlay.Id+" incorrect.");
+			}
+		}
+	}
+	
+	
 	@Override
 	protected void load(ByteProvider provider, LoadSpec loadSpec, List<Option> options,Program program, TaskMonitor monitor, MessageLog log) throws CancelledException, IOException
 	{
-		BinaryReader reader = new BinaryReader(provider, true);
 		FlatProgramAPI api = new FlatProgramAPI(program, monitor);
 		Memory mem = program.getMemory();
+		
 		monitor.setMessage("Loading Nintendo DS (NTR) binary...");	
 		
 		//Handles the NDS format in detail
-		NDS ndsManager = new NDS(provider);
+		NDS romParser = new NDS(provider);
 		
 		try
 		{
@@ -142,12 +188,11 @@ public class NTRGhidraLoader extends AbstractLibrarySupportLoader {
 			{
 				monitor.setMessage("Loading Nintendo DS ARM9 binary...");
 				
-				//Read the important values from the header. Can be implemented in a separate class.
-				int arm9_file_offset = reader.readInt(0x020);
-				int arm9_entrypoint = reader.readInt(0x024);
-				int arm9_ram_base = reader.readInt(0x028);
-				int arm9_size = reader.readInt(0x02C);
-				
+				//Read the important values from the header. 
+				int arm9_file_offset = romParser.Header.MainRomOffset;
+				int arm9_entrypoint = romParser.Header.MainEntryAddress;
+				int arm9_ram_base = romParser.Header.MainRamAddress;
+				int arm9_size = romParser.Header.MainSize;
 				
 				
 				if(usesNintendoSDK) //try to apply decompression
@@ -155,7 +200,7 @@ public class NTRGhidraLoader extends AbstractLibrarySupportLoader {
 					try {
 						
 						//Get decompressed blob
-						byte decompressedBytes[] = ndsManager.GetDecompressedARM9();
+						byte decompressedBytes[] = romParser.GetDecompressedARM9();
 						
 						/// Main RAM block: has to be created without the Flat API.
 						Address addr = program.getAddressFactory().getDefaultAddressSpace().getAddress(arm9_ram_base);
@@ -205,6 +250,9 @@ public class NTRGhidraLoader extends AbstractLibrarySupportLoader {
 					api.createLabel(api.toAddr(l.addr()),l.name(),true);
 				}
 				
+				//Load overlays (segments of memory that are usually loaded at the same address/regions)
+				loadARM9Overlays(provider,program, romParser, log, api, monitor);
+				
 				//Set entrypoint
 				api.addEntryPoint(api.toAddr(arm9_entrypoint));
 				api.disassemble(api.toAddr(arm9_entrypoint));
@@ -214,10 +262,10 @@ public class NTRGhidraLoader extends AbstractLibrarySupportLoader {
 			else //ARM7
 			{
 				monitor.setMessage("Loading Nintendo DS ARM7 binary...");
-				int arm7_file_offset = reader.readInt(0x030);
-				int arm7_entrypoint = reader.readInt(0x034);
-				int arm7_ram_base = reader.readInt(0x038);
-				int arm7_size = reader.readInt(0x03C);
+				int arm7_file_offset = romParser.Header.SubRomOffset;
+				int arm7_entrypoint = romParser.Header.SubEntryAddress;
+				int arm7_ram_base = romParser.Header.SubRamAddress;
+				int arm7_size = romParser.Header.SubSize;
 				
 				//Create ARM7 Memory Map
 				Address addr = program.getAddressFactory().getDefaultAddressSpace().getAddress(arm7_ram_base);
@@ -244,15 +292,14 @@ public class NTRGhidraLoader extends AbstractLibrarySupportLoader {
 					api.createLabel(api.toAddr(l.addr()),l.name(),true);
 				}
 				
+				//Load overlays (segments of memory that are usually loaded at the same address/regions)
+				loadARM7Overlays(provider,program, romParser, log, api, monitor);
+				
 				//Set entrypoint
 				api.addEntryPoint(api.toAddr(arm7_entrypoint));
 				api.disassemble(api.toAddr(arm7_entrypoint));
 				api.createFunction(api.toAddr(arm7_entrypoint), "_entry_arm7");
 			}	
-			
-			//Load overlays (segments of memory that are usually loaded at the same address/regions)
-			loadOverlays(provider,program, ndsManager, log, api, monitor);
-			
 		}
 		catch(IOException e)
 		{
@@ -264,50 +311,9 @@ public class NTRGhidraLoader extends AbstractLibrarySupportLoader {
 			log.appendException(e);
 		}
 		catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 			log.appendException(e);
 		}
 	}
 
-	void loadOverlays(ByteProvider provider, Program program, NDS romparser, MessageLog log, FlatProgramAPI fpa, TaskMonitor monitor) throws IOException, AddressOverflowException{
-		BinaryReader reader = new BinaryReader(provider, true);
-		
-		int i = 0;
-		for(RomOVT overlay: romparser.getMainOVT())
-		{
-			try
-			{
-				int fatAddr = romparser.Header.FatOffset + (8 * overlay.FileId);
-				System.out.println("FATADDR: "+fatAddr);
-				InputStream stream = provider.getInputStream(reader.readInt(fatAddr));
-				createInitializedBlock(program, true, "overlay_"+i+"_"+overlay.Id, fpa.toAddr(overlay.RamAddress), stream, overlay.RamSize, "", "", true, true, true, log, monitor);
-				i++;
-			}
-			catch(IOException e)
-			{
-				System.err.println("overlay_"+i+"_"+overlay.Id+" incorrect.");
-			}
-		}
-		
-		i = 0;
-		for(RomOVT overlay: romparser.getSubOVT())
-		{
-			try
-			{
-				int fatAddr = romparser.Header.FatOffset + (8 * overlay.FileId);
-				System.out.println("FATADDR: "+fatAddr);
-				InputStream stream = provider.getInputStream(reader.readInt(fatAddr));
-				createInitializedBlock(program, true, "suboverlay_"+i+"_"+overlay.Id, fpa.toAddr(overlay.RamAddress), stream, overlay.RamSize, "", "", true, true, true, log, monitor);
-				i++;
-			}
-			catch(IOException e)
-			{
-				System.err.println("suboverlay_"+i+"_"+overlay.Id+" incorrect.");
-			}
-		}
-		
-		
-		
-	}
 }
