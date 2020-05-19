@@ -134,7 +134,6 @@ public class NTRGhidraLoader extends AbstractLibrarySupportLoader {
 			try
 			{
 				int fatAddr = romparser.Header.FatOffset + (8 * overlay.FileId);
-				System.out.println("FATADDR: "+fatAddr);
 				InputStream stream = provider.getInputStream(reader.readInt(fatAddr));
 				createInitializedBlock(program, true, "overlay_"+i+"_"+overlay.Id, fpa.toAddr(overlay.RamAddress), stream, overlay.RamSize, "", "", true, true, true, log, monitor);
 				i++;
@@ -142,6 +141,7 @@ public class NTRGhidraLoader extends AbstractLibrarySupportLoader {
 			catch(IOException e)
 			{
 				System.err.println("overlay_"+i+"_"+overlay.Id+" incorrect.");
+				System.err.println("file id: "+overlay.FileId);
 			}
 		}
 	}

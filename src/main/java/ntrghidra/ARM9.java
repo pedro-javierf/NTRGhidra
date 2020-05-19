@@ -191,9 +191,9 @@ public class ARM9
 			if(Data[i]==Search[0]) //byte is a primitive type
 			{
 				found = true;
-				for(int x = i; x < i+Search.length-1; x++)
+				for(int x = i+1; x < i+Search.length && x < Data.length; x++)
 				{
-					if(Data[x]!=Search[x])
+					if(Data[x]!=Search[x-i])
 					{
 						found = false;
 						break;

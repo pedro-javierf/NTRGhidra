@@ -157,19 +157,29 @@ public class NDS
 
 				public OVTFlag Flag;// :8;
 				
-				public static enum OVTFlag
+				public class OVTFlag
 				{
-					Compressed(1),
-					AuthenticationCode(2);
+					private boolean Compressed;
+					private boolean AuthenticationCode;
 
 					private int numVal;
 					
 					OVTFlag(int i) {
-						numVal = i;
+						if(i==0)
+							{Compressed = false;
+							AuthenticationCode = false;}
+						else if(i==1)
+							{Compressed = false;
+							AuthenticationCode = true;}
+						else if(i==2)
+							{Compressed = true;
+							AuthenticationCode = false;}
+						else if(i==3)
+							{Compressed = true;
+							AuthenticationCode = true;}
 					}
-					public int getNumVal() {
-				        return numVal;
-				    }
+					public boolean getCompressed() {return Compressed;}
+					public boolean getAuthenticationCode() {return AuthenticationCode;}
 				}
 				
 				public RomOVT() { }
@@ -184,9 +194,9 @@ public class NDS
 					SinitInitEnd = er.readNextInt(); //static end
 					FileId = er.readNextInt();
 					
-					//int tmp = er.readNextInt();
-					//Compressed = tmp & 0xFFFFFF;
-					//Flag = OVTFlag.values()[(tmp >>> 24)];
+					int tmp = er.readNextInt();
+					Compressed = tmp & 0xFFFFFF;
+					Flag = new OVTFlag((tmp >>> 24));
 				}
 
 				
