@@ -153,30 +153,20 @@ public class NDS
 				public int SinitInit;
 				public int SinitInitEnd;
 				public int FileId;
-				public int Compressed;//:24;
-
-				public OVTFlag Flag;// :8;
+				
+				//The next elements are all within 4 bytes. Most significan 8 bits are flags. 24 are compressed offset in the overlay file
+				public int CompressedOffset;//:24; offset
+				public OVTFlag Flag;		// :8;
 				
 				public class OVTFlag
 				{
 					private boolean Compressed;
 					private boolean AuthenticationCode;
-
-					private int numVal;
 					
-					OVTFlag(int i) {
-						if(i==0)
-							{Compressed = false;
-							AuthenticationCode = false;}
-						else if(i==1)
-							{Compressed = false;
-							AuthenticationCode = true;}
-						else if(i==2)
-							{Compressed = true;
-							AuthenticationCode = false;}
-						else if(i==3)
-							{Compressed = true;
-							AuthenticationCode = true;}
+					OVTFlag(byte msb) {
+						
+						Compressed = (0x000000FF & (int)msb & 0x1)==1;
+						AuthenticationCode = (0x000000FF & (int)msb & 0x2)==1;
 					}
 					public boolean getCompressed() {return Compressed;}
 					public boolean getAuthenticationCode() {return AuthenticationCode;}
@@ -186,17 +176,17 @@ public class NDS
 				public RomOVT(BinaryReader er) throws IOException
 				{
 					
-					Id = er.readNextInt();
-					RamAddress = er.readNextInt();
-					RamSize = er.readNextInt();
-					BssSize = er.readNextInt();
-					SinitInit = er.readNextInt(); //static start
-					SinitInitEnd = er.readNextInt(); //static end
-					FileId = er.readNextInt();
+					Id = er.readNextInt(); //0-4
+					RamAddress = er.readNextInt(); //4-8
+					RamSize = er.readNextInt(); //8-C
+					BssSize = er.readNextInt(); //C-10
+					SinitInit = er.readNextInt(); //static start 10-14
+					SinitInitEnd = er.readNextInt(); //static end 14-18
+					FileId = er.readNextInt(); //18-1C
 					
-					int tmp = er.readNextInt();
-					Compressed = tmp & 0xFFFFFF;
-					Flag = new OVTFlag((tmp >>> 24));
+					int tmp = er.readNextInt(); //1C
+					CompressedOffset = tmp & 0x00FFFFFF;
+					Flag = new OVTFlag((byte)(tmp >>> 24));
 				}
 
 				
@@ -303,6 +293,11 @@ public class NDS
 			return ARM9.Decompress(MainRom, StaticFooter._start_ModuleParamsOffset);
 		
 		return ARM9.Decompress(MainRom);
+	}
+	
+	public byte[] GetDecompressedOverlay(byte[] input)
+	{
+		return ARM9.DecompressOVT(input);
 	}
 
 }

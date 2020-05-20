@@ -72,25 +72,6 @@ public class ARM9
 		}
 	}
 
-	/*
-	public byte[] Write()
-	{
-		MemoryStream m = new MemoryStream();
-		EndianBinaryWriter er = new EndianBinaryWriter(m, Endianness.LittleEndian);
-		er.Write(StaticData, 0, StaticData.length);
-		_start_ModuleParams.AutoLoadStart = (int)er.BaseStream.Position + RamAddress;
-		foreach (var v in AutoLoadList) er.Write(v.Data, 0, v.Data.length);
-		_start_ModuleParams.AutoLoadListOffset = (int)er.BaseStream.Position + RamAddress;
-		foreach (var v in AutoLoadList) v.Write(er);
-		_start_ModuleParams.AutoLoadListEnd = (int)er.BaseStream.Position + RamAddress;
-		long curpos = er.BaseStream.Position;
-		er.BaseStream.Position = _start_ModuleParamsOffset;
-		_start_ModuleParams.Write(er);
-		er.BaseStream.Position = curpos;
-		byte[] data = m.ToArray();
-		er.Close();
-		return data;
-	}*/
 
 	public void AddAutoLoadEntry(int Address, byte[] Data)
 	{
@@ -150,7 +131,13 @@ public class ARM9
 		}
 		return false;
 	}
-
+	
+	public static byte[] DecompressOVT(byte[] Data)
+	{
+		byte[] Result = CRT0.MIi_UncompressBackward(Data);
+		return Result;
+	}
+	
 	public static byte[] Decompress(byte[] Data)
 	{
 		int offset = FindModuleParams(Data);

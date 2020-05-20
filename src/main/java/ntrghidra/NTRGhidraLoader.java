@@ -15,6 +15,7 @@
  */
 package ntrghidra;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
@@ -46,7 +47,7 @@ import static ghidra.app.util.MemoryBlockUtils.createInitializedBlock;
  */
 public class NTRGhidraLoader extends AbstractLibrarySupportLoader {
 
-	private final String versionStr = "v1.4";
+	private final String versionStr = "v1.4.1";
 	private boolean chosenCPU;
 	private boolean usesNintendoSDK;
 	
@@ -131,18 +132,31 @@ public class NTRGhidraLoader extends AbstractLibrarySupportLoader {
 		int i = 0;
 		for(RomOVT overlay: romparser.getMainOVT())
 		{
-			try
+
+			if(overlay.Flag.getCompressed())
+			{
+				//Compute size of the overlay file
+				int fatAddr = romparser.Header.FatOffset + (8 * overlay.FileId);
+				int fileStart = reader.readInt(fatAddr);
+				int fileEnd = reader.readInt(fatAddr+4);
+				int size = fileEnd-fileStart;
+
+				//Read the whole (compressed) overlay file
+				InputStream stream = provider.getInputStream(fileStart);
+				byte[] Compressed = stream.readNBytes(size);
+				
+				//Decompress
+				byte[] Decompressed = romparser.GetDecompressedOverlay(Compressed);
+				
+				createInitializedBlock(program, true, "overlay_d_"+i, fpa.toAddr(overlay.RamAddress), new ByteArrayInputStream(Decompressed), overlay.RamSize, "", "", true, true, true, log, monitor);
+			}
+			else
 			{
 				int fatAddr = romparser.Header.FatOffset + (8 * overlay.FileId);
 				InputStream stream = provider.getInputStream(reader.readInt(fatAddr));
-				createInitializedBlock(program, true, "overlay_"+i+"_"+overlay.Id, fpa.toAddr(overlay.RamAddress), stream, overlay.RamSize, "", "", true, true, true, log, monitor);
-				i++;
+				createInitializedBlock(program, true, "overlay_"+i, fpa.toAddr(overlay.RamAddress), stream, overlay.RamSize, "", "", true, true, true, log, monitor);
 			}
-			catch(IOException e)
-			{
-				System.err.println("overlay_"+i+"_"+overlay.Id+" incorrect.");
-				System.err.println("file id: "+overlay.FileId);
-			}
+			i++;
 		}
 	}
 	
@@ -155,18 +169,11 @@ public class NTRGhidraLoader extends AbstractLibrarySupportLoader {
 		i = 0;
 		for(RomOVT overlay: romparser.getSubOVT())
 		{
-			try
-			{
 				int fatAddr = romparser.Header.FatOffset + (8 * overlay.FileId);
 				System.out.println("FATADDR: "+fatAddr);
 				InputStream stream = provider.getInputStream(reader.readInt(fatAddr));
 				createInitializedBlock(program, true, "suboverlay_"+i+"_"+overlay.Id, fpa.toAddr(overlay.RamAddress), stream, overlay.RamSize, "", "", true, true, true, log, monitor);
 				i++;
-			}
-			catch(IOException e)
-			{
-				System.err.println("suboverlay_"+i+"_"+overlay.Id+" incorrect.");
-			}
 		}
 	}
 	
@@ -197,28 +204,20 @@ public class NTRGhidraLoader extends AbstractLibrarySupportLoader {
 				
 				if(usesNintendoSDK) //try to apply decompression
 				{
-					try {
-						
-						//Get decompressed blob
-						byte decompressedBytes[] = romParser.GetDecompressedARM9();
-						
-						/// Main RAM block: has to be created without the Flat API.
-						Address addr = program.getAddressFactory().getDefaultAddressSpace().getAddress(arm9_ram_base);
-						MemoryBlock block = mem.createInitializedBlock("ARM9 Main Memory", addr, decompressedBytes.length, (byte)0x00, monitor, false);
-						
-						//Set properties
-						block.setRead(true);
-						block.setWrite(true);
-						block.setExecute(true);
-						
-						//Fill the main memory segment with the decompressed data/code.
-						mem.setBytes(api.toAddr(arm9_ram_base), decompressedBytes);
-					}
-					catch(Exception e)
-					{
-						e.printStackTrace(); 
-						System.out.println(e);
-					}
+					//Get decompressed blob
+					byte decompressedBytes[] = romParser.GetDecompressedARM9();
+					
+					/// Main RAM block: has to be created without the Flat API.
+					Address addr = program.getAddressFactory().getDefaultAddressSpace().getAddress(arm9_ram_base);
+					MemoryBlock block = mem.createInitializedBlock("ARM9 Main Memory", addr, decompressedBytes.length, (byte)0x00, monitor, false);
+					
+					//Set properties
+					block.setRead(true);
+					block.setWrite(true);
+					block.setExecute(true);
+					
+					//Fill the main memory segment with the decompressed data/code.
+					mem.setBytes(api.toAddr(arm9_ram_base), decompressedBytes);
 				}
 				else
 				{
@@ -300,15 +299,6 @@ public class NTRGhidraLoader extends AbstractLibrarySupportLoader {
 				api.disassemble(api.toAddr(arm7_entrypoint));
 				api.createFunction(api.toAddr(arm7_entrypoint), "_entry_arm7");
 			}	
-		}
-		catch(IOException e)
-		{
-			e.printStackTrace();
-			log.appendException(e);
-		}
-		catch(AddressOverflowException e)
-		{
-			log.appendException(e);
 		}
 		catch (Exception e) {
 			e.printStackTrace();
