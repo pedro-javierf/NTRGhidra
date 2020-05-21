@@ -7,8 +7,14 @@ A Nintendo DS Loader for Ghidra
 # License
 NTRGhidra is released under the ![Apache License 2.0](https://github.com/pedro-javierf/NTRGhidra/blob/master/LICENSE).
 
-# Installation
+# Contributing & Support
+* Fork and pull request to contribute, feel free to open issues suggesting feautures or reporting bugs. It is recommended to follow ISSUE_TEMPLATE templates.
+* Support by starring the project.
 
+# Features
+See [here](https://github.com/pedro-javierf/NTRGhidra/projects/1)
+
+# Installation
 If you just want to install the loader into a existing Ghidra installation:
 
 1. Download the .zip from releases OR build the project.
@@ -19,21 +25,11 @@ If you just want to install the loader into a existing Ghidra installation:
 4. Restart Ghidra.
 
 # Source and Build
-
 Provided is an Eclipse project to debug and build the loader. You must have a Ghidra installation as well as the Ghidra Eclipse extension.
 
-To export a build of the project in Eclipse select File > Export and then choose Ghidra > Ghidra Module Extension
-
-# Features
- - [x] Load NTR format files (usually .nds extension).
- - [x] Can decompress Nintendo SDK ARM9 code!
- - [x] Memory Map support (I/O memory with names)
--  [x] Overlay Loading Support
-
-# Work in progress features
- - [ ] SDK autoloading
- - [ ] DSi (TWL) Support
+To export a build of the project in Eclipse select File > Export and then choose Ghidra > Ghidra Module Extension. You can then use a local Gradle installation or an online build.
 
 
 # Acknowledgements
-Thanks to Gericom for the original C# Header and ARM9 decompression code from EFE(Every File Explorer).
+* Special thanks to [gbatek](https://problemkaputt.de/gbatek.htm) for ds technical info
+* Thanks to Gericom for the original C# Header and ARM9 decompression code from EFE(Every File Explorer), as well as for testing.
