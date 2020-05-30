@@ -1,14 +1,13 @@
 # NTRGhidra
 A Nintendo DS Loader for Ghidra
 
-
-![NTRGhidra a Nintendo DS Loader for Ghidra](https://media.defense.gov/2019/Apr/04/2002109557/-1/-1/0/190404-D-IM742-1002.PNG)
+![NTRGhidra a Nintendo DS Loader for Ghidra](https://user-images.githubusercontent.com/16199912/56060896-12690380-5d36-11e9-802e-8c7e70cd481e.png)
 
 # License
 NTRGhidra is released under the ![Apache License 2.0](https://github.com/pedro-javierf/NTRGhidra/blob/master/LICENSE).
 
 # Contributing & Support
-* Fork and pull request to contribute, feel free to open issues suggesting feautures or reporting bugs. It is recommended to follow ISSUE_TEMPLATE templates.
+* Fork and pull request to contribute, feel free to open issues suggesting feautures or reporting bugs. It is recommended to follow the issue templates.
 * Support by starring the project.
 
 # Features
@@ -29,7 +28,11 @@ Provided is an Eclipse project to debug and build the loader. You must have a Gh
 
 To export a build of the project in Eclipse select File > Export and then choose Ghidra > Ghidra Module Extension. You can then use a local Gradle installation or an online build.
 
-
 # Acknowledgements
 * Special thanks to [gbatek](https://problemkaputt.de/gbatek.htm) for ds technical info
 * Thanks to Gericom for the original C# Header and ARM9 decompression code from EFE(Every File Explorer), as well as for testing.
+
+# Others
+For reference and tutorials about Ghidra loaders and how to write them, you may want to read:
+* [Tutorial: Writing a Ghidra loader](https://pedro-javierf.github.io/devblog/tutorialwritingaghidraloader/)
+* [Advanced Ghidra Loader: labels, overlays and Function ID](https://pedro-javierf.github.io/devblog/advancedghidraloader/)
