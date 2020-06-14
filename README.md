@@ -7,7 +7,7 @@ A Nintendo DS Loader for Ghidra
 NTRGhidra is released under the ![Apache License 2.0](https://github.com/pedro-javierf/NTRGhidra/blob/master/LICENSE).
 
 # Contributing & Support
-* Fork and pull request to contribute, feel free to open issues suggesting feautures or reporting bugs. It is recommended to follow the issue templates.
+* Fork, modify and pull request to contribute, feel free to open issues suggesting feautures, reporting bugs, asking for documentation or changes, etc :) 
 * Support by starring the project.
 
 # Features
@@ -16,7 +16,7 @@ See [here](https://github.com/pedro-javierf/NTRGhidra/projects/1)
 # Installation
 If you just want to install the loader into a existing Ghidra installation:
 
-1. Download the .zip from releases OR build the project.
+1. Download the .zip from [releases](https://github.com/pedro-javierf/NTRGhidra/releases) OR build the project.
 2. Put the .zip into the GHIDRA_INSTALL_DIR/Extensions/Ghidra folder
 3. In the initial window (not the Code Browser), open the File menu, and select Install Extensions. Click the small 'plus' icon in the top right of the window, and select the extension zip file downloaded. This should add an entry into the extensions list. Make sure it is checked and click OK.
 ![Step 1](install1.png)
