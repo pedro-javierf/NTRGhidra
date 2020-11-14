@@ -32,8 +32,8 @@ import ghidra.program.model.address.Address;
 import ghidra.program.model.address.AddressOverflowException;
 import ghidra.program.model.lang.LanguageCompilerSpecPair;
 import ghidra.program.model.listing.Program;
-import ghidra.program.model.mem.Memory;
-import ghidra.program.model.mem.MemoryBlock;
+import ghidra.program.model.mem.Memory;      //	Interface for Memory.
+import ghidra.program.model.mem.MemoryBlock; // Interface that defines a block in memory.
 import ghidra.util.exception.CancelledException;
 import ghidra.util.task.TaskMonitor;
 import ntrghidra.NDS.RomOVT;
@@ -47,7 +47,7 @@ import static ghidra.app.util.MemoryBlockUtils.createInitializedBlock;
  */
 public class NTRGhidraLoader extends AbstractLibrarySupportLoader {
 
-	private final String versionStr = "v1.4.1";
+	private final String versionStr = "v1.4.2";
 	private boolean chosenCPU;
 	private boolean usesNintendoSDK;
 	
@@ -126,15 +126,17 @@ public class NTRGhidraLoader extends AbstractLibrarySupportLoader {
 		return new ArrayList<>();
 	}
 	
+	
+	//https://pedro-javierf.github.io/devblog/advancedghidraloader/
 	void loadARM9Overlays(ByteProvider provider, Program program, NDS romparser, MessageLog log, FlatProgramAPI fpa, TaskMonitor monitor) throws IOException, AddressOverflowException{
 		BinaryReader reader = new BinaryReader(provider, true);
 		
 		int i = 0;
 		for(RomOVT overlay: romparser.getMainOVT())
 		{
-
 			if(overlay.Flag.getCompressed())
 			{
+				
 				//Compute size of the overlay file
 				int fatAddr = romparser.Header.FatOffset + (8 * overlay.FileId);
 				int fileStart = reader.readInt(fatAddr);
@@ -161,7 +163,7 @@ public class NTRGhidraLoader extends AbstractLibrarySupportLoader {
 	}
 	
 	
-
+	//ARM7 has support for overlays as well, even compressed, but they have never been used in comercial games.
 	void loadARM7Overlays(ByteProvider provider, Program program, NDS romparser, MessageLog log, FlatProgramAPI fpa, TaskMonitor monitor) throws IOException, AddressOverflowException{
 		BinaryReader reader = new BinaryReader(provider, true);
 		
@@ -209,7 +211,7 @@ public class NTRGhidraLoader extends AbstractLibrarySupportLoader {
 					
 					/// Main RAM block: has to be created without the Flat API.
 					Address addr = program.getAddressFactory().getDefaultAddressSpace().getAddress(arm9_ram_base);
-					MemoryBlock block = mem.createInitializedBlock("ARM9 Main Memory", addr, decompressedBytes.length, (byte)0x00, monitor, false);
+					MemoryBlock block = mem.createInitializedBlock("ARM9_Main_Memory", addr, decompressedBytes.length, (byte)0x00, monitor, false);
 					
 					//Set properties
 					block.setRead(true);
@@ -226,7 +228,7 @@ public class NTRGhidraLoader extends AbstractLibrarySupportLoader {
 					
 					/// Main RAM block: has to be created without the Flat API.
 					Address addr = program.getAddressFactory().getDefaultAddressSpace().getAddress(arm9_ram_base);
-					MemoryBlock block = mem.createInitializedBlock("ARM9 Main Memory", addr, arm9_size, (byte)0x00, monitor, false);
+					MemoryBlock block = mem.createInitializedBlock("ARM9_Main_Memory", addr, arm9_size, (byte)0x00, monitor, false);
 					
 					//Set properties
 					block.setRead(true);

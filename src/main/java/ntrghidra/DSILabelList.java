@@ -3,7 +3,6 @@ package ntrghidra;
 import java.util.ArrayList;
 import java.util.List;
 
-import ntrghidra.DSILabelList.DSILabel;
 
 public class DSILabelList {
 

@@ -3,8 +3,6 @@ package ntrghidra;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
-import org.python.bouncycastle.util.Arrays;
-
 public class CRT0
 {
 	public class ModuleParams
@@ -60,12 +58,7 @@ public class CRT0
 			Size = IOUtil.ReadU32LE(Data, Offset + 4);
 			BssSize = IOUtil.ReadU32LE(Data, Offset + 8);
 		}
-		public void Write(DataOutputStream er) throws IOException
-		{
-			er.writeInt(Address);
-			er.writeInt(Size);
-			er.writeInt(BssSize);
-		}
+
 		public int Address;
 		public int Size;
 		public int BssSize;

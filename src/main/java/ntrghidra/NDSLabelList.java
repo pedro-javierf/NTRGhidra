@@ -3,8 +3,6 @@ package ntrghidra;
 import java.util.ArrayList;
 import java.util.List;
 
-import ntrghidra.NDSMemRegionList.NDSMemRegion;
-
 public class NDSLabelList {
 
 	//This internal class represents a location of interest (registers, i/o, etc)

@@ -39,24 +39,24 @@ public class NDSMemRegionList {
 	{	
 		//ARM9
 		//Main Memory is found on NTRGhidraLoader.java
-		_ARM9regions.add(new NDSMemRegion("Shared WRAM",0x03000000,0x00008000,true,false,false));
-		_ARM9regions.add(new NDSMemRegion("ARM9 I/O Ports",0x04000000,0x01000000,true,false,false));
-		_ARM9regions.add(new NDSMemRegion("Standard Palettes",0x05000000,0x01000000,true,false,false));
-		_ARM9regions.add(new NDSMemRegion("VRAM - Engine A BG VRAM",0x06000000,0x00200000,true,false,false));
-		_ARM9regions.add(new NDSMemRegion("VRAM - Engine B BG VRAM",0x06200000,0x00200000,true,false,false));
-		_ARM9regions.add(new NDSMemRegion("VRAM - Engine A OBJ VRAM",0x06400000,0x00200000,true,false,false));
-		_ARM9regions.add(new NDSMemRegion("VRAM - Engine B OBJ VRAM",0x06600000,0x00200000,true,false,false));
-		_ARM9regions.add(new NDSMemRegion("VRAM - LCDC",0x06800000,0x00200000,true,false,false));
+		_ARM9regions.add(new NDSMemRegion("Shared_WRAM",0x03000000,0x00008000,true,false,false));
+		_ARM9regions.add(new NDSMemRegion("ARM9_IO_Ports",0x04000000,0x01000000,true,false,false));
+		_ARM9regions.add(new NDSMemRegion("Standard_Palettes",0x05000000,0x01000000,true,false,false));
+		_ARM9regions.add(new NDSMemRegion("VRAM_Engine_A_BG_VRAM",0x06000000,0x00200000,true,false,false));
+		_ARM9regions.add(new NDSMemRegion("VRAM_Engine_B_BG_VRAM",0x06200000,0x00200000,true,false,false));
+		_ARM9regions.add(new NDSMemRegion("VRAM_Engine_A_OBJ_VRAM",0x06400000,0x00200000,true,false,false));
+		_ARM9regions.add(new NDSMemRegion("VRAM_Engine_B_OBJ_VRAM",0x06600000,0x00200000,true,false,false));
+		_ARM9regions.add(new NDSMemRegion("VRAM_LCDC",0x06800000,0x00200000,true,false,false));
 		
 		//ARM7
-		_ARM7regions.add(new NDSMemRegion("Shared WRAM",0x03000000,0x00008000,true,false,false));
-		_ARM7regions.add(new NDSMemRegion("ARM7 WRAM (Private memory?)",0x03800000,0x00010000,true,false,false));
-		_ARM7regions.add(new NDSMemRegion("ARM7 I/O Ports",0x04000000,0x00800000,true,false,false));
-		_ARM7regions.add(new NDSMemRegion("Wireless Communications Wait State 0 (8KB RAM at 4804000h)",0x04800000,0x00008000,true,false,false));
-		_ARM7regions.add(new NDSMemRegion("Wireless Communications Wait State 1 (I/O Ports at 4808000h)",0x04808000,0x00200000,true,false,false));
-		_ARM7regions.add(new NDSMemRegion("VRAM allocated as Work RAM to ARM7 (max 256K)",0x06000000,0x0040000,true,false,false));
-		_ARM7regions.add(new NDSMemRegion("GBA Slot ROM (max 32MB)",0x06600000,0x02000000,true,false,false));
-		_ARM7regions.add(new NDSMemRegion("GBA Slot RAM (max 64KB)",0x0A000000,0x00010000,true,false,false));
+		_ARM7regions.add(new NDSMemRegion("Shared_WRAM",0x03000000,0x00008000,true,false,false));
+		_ARM7regions.add(new NDSMemRegion("ARM7_WRAM_",0x03800000,0x00010000,true,false,false));
+		_ARM7regions.add(new NDSMemRegion("ARM7_IO_Ports",0x04000000,0x00800000,true,false,false));
+		_ARM7regions.add(new NDSMemRegion("Wireless_Communications_Wait_State_0(8KB_RAM_at_4804000h)",0x04800000,0x00008000,true,false,false));
+		_ARM7regions.add(new NDSMemRegion("Wireless_Communications_Wait_State_1(IO_Ports_at_4808000h)",0x04808000,0x00200000,true,false,false));
+		_ARM7regions.add(new NDSMemRegion("VRAM_allocated_as_Work_RAM_to_ARM7(max_256K)",0x06000000,0x0040000,true,false,false));
+		_ARM7regions.add(new NDSMemRegion("GBA_Slot_ROM(max_32MB)",0x06600000,0x02000000,true,false,false));
+		_ARM7regions.add(new NDSMemRegion("GBA_Slot_RAM(max_64KB)",0x0A000000,0x00010000,true,false,false));
 	}
 	
 	public static NDSMemRegionList getInstance()
