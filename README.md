@@ -1,5 +1,5 @@
 # NTRGhidra
-A Nintendo DS Loader for Ghidra
+A Nintendo DS Loader for Ghidra (9.1.2 & 9.2)
 
 ![NTRGhidra a Nintendo DS Loader for Ghidra](https://user-images.githubusercontent.com/16199912/56060896-12690380-5d36-11e9-802e-8c7e70cd481e.png)
 
@@ -7,11 +7,11 @@ A Nintendo DS Loader for Ghidra
 NTRGhidra is released under the ![Apache License 2.0](https://github.com/pedro-javierf/NTRGhidra/blob/master/LICENSE).
 
 # Contributing & Support
-* Fork, modify and pull request to contribute, feel free to open issues suggesting feautures, reporting bugs, asking for documentation or changes, etc :) 
-* Support by starring the project.
+* Fork, modify and pull request to contribute, don't hesitate to open issues suggesting feautures, reporting bugs, asking for documentation or changes, etc :) 
+* Support as well by starring the project.
 
 # Features
-See [here](https://github.com/pedro-javierf/NTRGhidra/projects/1)
+See [this listing](https://github.com/pedro-javierf/NTRGhidra/projects/1)
 
 # Installation
 If you just want to install the loader into a existing Ghidra installation:
@@ -24,6 +24,9 @@ If you just want to install the loader into a existing Ghidra installation:
 4. Restart Ghidra.
 
 # Source and Build
+
+NOTE: Current eclipse project extension debugging is not working after the update to Ghidra 9.2 with error: ```OpenJDK 64-Bit Server VM warning: Archived non-system classes are disabled because the java.system.class.loader property is specified (value = "ghidra.GhidraClassLoader"). To use archived non-system classes, this property must not be set```. Builds are working but must be tested manually. If you have a solution for this or a way to rebuild the project you are more than welcome to create a pull request!
+
 Provided is an Eclipse project to debug and build the loader. You must have a Ghidra installation as well as the Ghidra Eclipse extension.
 
 To export a build of the project in Eclipse select File > Export and then choose Ghidra > Ghidra Module Extension. You can then use a local Gradle installation or an online build.
