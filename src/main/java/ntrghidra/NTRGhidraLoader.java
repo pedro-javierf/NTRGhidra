@@ -47,7 +47,7 @@ import static ghidra.app.util.MemoryBlockUtils.createInitializedBlock;
  */
 public class NTRGhidraLoader extends AbstractLibrarySupportLoader {
 
-	private final String versionStr = "v1.4.2";
+	private final String versionStr = "v1.4.3";
 	private boolean chosenCPU;
 	private boolean usesNintendoSDK;
 	
