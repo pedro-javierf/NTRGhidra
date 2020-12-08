@@ -30,14 +30,14 @@ public class NDSLabelList {
 		{	
 			/*ARM 9*/
 			//ARM9 Display Engine A
-			_ARM9labels.add(new NDSLabel("REG_DISPCNT", 0x4000000));
-			_ARM9labels.add(new NDSLabel("REG_DISPSTAT", 0x4000004));
+			_ARM9labels.add(new NDSLabel("REG_A_DISPCNT", 0x4000000));
+			_ARM9labels.add(new NDSLabel("REG_A_DISPSTAT", 0x4000004));
 			_ARM9labels.add(new NDSLabel("REG_VCOUNT", 0x4000006));
 			_ARM9labels.add(new NDSLabel("2D_ENGINE_A", 0x4000008));
 			_ARM9labels.add(new NDSLabel("REG_DISP3DCNT", 0x4000060));
 			_ARM9labels.add(new NDSLabel("REG_DISPCAPCNT", 0x4000064));
 			_ARM9labels.add(new NDSLabel("REG_DISP_MMEM_FIFO", 0x4000068));
-			_ARM9labels.add(new NDSLabel("REG_MASTER_BRIGHT", 0x400006C));
+			_ARM9labels.add(new NDSLabel("REG_A_MASTER_BRIGHT", 0x400006C));
 			
 			//ARM9 DMA, Timers, and Keypad
 			_ARM9labels.add(new NDSLabel("DMA_CHANNEL_0_to_3", 0x40000B0));
@@ -91,9 +91,9 @@ public class NDSLabelList {
 			_ARM9labels.add(new NDSLabel("3d_Engine", 0x4000320));
 		
 			//ARM9 Display Engine B	
-			_ARM9labels.add(new NDSLabel("REG_DISPCNT", 0x4001000));
-			_ARM9labels.add(new NDSLabel("REG_DISPSTAT", 0x4001004));
-			_ARM9labels.add(new NDSLabel("REG_MASTER_BRIGHT", 0x4001006));
+			_ARM9labels.add(new NDSLabel("REG_B_DISPCNT", 0x4001000));
+			_ARM9labels.add(new NDSLabel("REG_B_DISPSTAT", 0x4001004));
+			_ARM9labels.add(new NDSLabel("REG_B_MASTER_BRIGHT", 0x4001006));
 
 			//DSi extra registers: not included in NTRGhidra (stay tuned for TWLGhidra)
 			
