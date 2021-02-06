@@ -270,7 +270,7 @@ public class NTRGhidraLoader extends AbstractLibrarySupportLoader {
 				
 				//Create ARM7 Memory Map
 				Address addr = program.getAddressFactory().getDefaultAddressSpace().getAddress(arm7_ram_base);
-				MemoryBlock block = program.getMemory().createInitializedBlock("ARM7 Main Memory", addr, arm7_size, (byte)0x00, monitor, false);	
+				MemoryBlock block = program.getMemory().createInitializedBlock("ARM7_Main_Memory", addr, arm7_size, (byte)0x00, monitor, false);	
 				
 				//Set properties
 				block.setRead(true);
