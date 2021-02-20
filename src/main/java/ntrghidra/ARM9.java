@@ -61,7 +61,7 @@ public class ARM9
 			entry.Data = new byte[entry.Size];
 			
 			
-			//GOOD ?
+			//GOOD
 			//Array.Copy(Data, Offset, entry.Data, 0, entry.Size);
 			entry.Data = Arrays.copyOf(Data, entry.Size);
 			
