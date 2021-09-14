@@ -24,13 +24,18 @@ If you just want to install the loader into a existing Ghidra installation:
 ![Step 2](install2.PNG)
 4. Restart Ghidra.
 
-# Source and Build
+# How to Build
 
 NOTE: Current eclipse project extension debugging is not working after the update to Ghidra 9.2 with error: ```OpenJDK 64-Bit Server VM warning: Archived non-system classes are disabled because the java.system.class.loader property is specified (value = "ghidra.GhidraClassLoader"). To use archived non-system classes, this property must not be set```. Builds are working but must be tested manually. If you have a solution for this or a way to rebuild the project you are more than welcome to create a pull request!
 
-Provided is an Eclipse project to debug and build the loader. You must have a Ghidra installation as well as the Ghidra Eclipse extension.
+These are the basic steps to debug and build the loader. You must have a Ghidra installation.
 
-To export a build of the project in Eclipse select File > Export and then choose Ghidra > Ghidra Module Extension. You can then use a local Gradle installation or an online build.
+1. Install Ghidra
+2. Install the Eclipse IDE
+3. In Eclipse, you need to install the Ghidra extension. Click Help > "Install New Software" (https://stackoverflow.com/questions/31553376/eclipse-how-to-install-a-plugin-manually)
+4. After the extension is installed, clone/download this repository, which contains an Eclipse project
+5. Open the project with Eclipse (File > Open Projects from File System)
+6. Export a build of the project in Eclipse select "File > Export", and then choose "Ghidra > Ghidra Module Extension". You can then use a local Gradle installation or an online build system.
 
 # Acknowledgements
 * Special thanks to [gbatek](https://problemkaputt.de/gbatek.htm) for ds technical info
