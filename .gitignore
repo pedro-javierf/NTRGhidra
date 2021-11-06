@@ -1,0 +1,5 @@
+# Ignore Gradle's folder
+/.gradle
+
+# Ignore build folder
+/build
