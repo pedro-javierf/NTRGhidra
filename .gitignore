@@ -3,3 +3,6 @@
 
 # Ignore build folder
 /build
+
+# Ignore bin folder
+/bin
