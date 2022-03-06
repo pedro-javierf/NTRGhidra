@@ -1,6 +1,8 @@
 # NTRGhidra
 ![](https://img.shields.io/github/issues/pedro-javierf/NTRGhidra/bug)<br>
-A Nintendo DS Loader for Ghidra (9.1.2 & 9.2)
+A Nintendo DS Loader for Ghidra
+
+Latest Ghidra version supported: 10.1.2
 
 ![NTRGhidra a Nintendo DS Loader for Ghidra](https://user-images.githubusercontent.com/16199912/56060896-12690380-5d36-11e9-802e-8c7e70cd481e.png)
 
