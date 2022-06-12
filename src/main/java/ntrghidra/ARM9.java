@@ -1,3 +1,14 @@
+/*
+* ARM9.java
+* This class contains code to locate in memory and
+* work with the ARM9 part of a game's binary.
+*
+* Pedro Javier Fernández
+* 12/06/2022 (DD/MM/YYYY)
+*
+* See project license file for license information.
+*/ 
+
 package ntrghidra;
 
 import java.util.ArrayList;
@@ -9,13 +20,10 @@ import ntrghidra.CRT0.AutoLoadEntry;
 public class ARM9
 {
 	private int RamAddress;
-
 	private byte[] StaticData;
-
 	private int _start_ModuleParamsOffset;
 	private CRT0.ModuleParams _start_ModuleParams;
-
-	private List<CRT0.AutoLoadEntry> AutoLoadList;
+	private List<CRT0.AutoLoadEntry> AutoLoadList; // AutoLoad is a TODO feature still.
 
 	public ARM9(byte[] Data, int RamAddress)
 	{
@@ -71,7 +79,6 @@ public class ARM9
 			Offset += entry.Size;
 		}
 	}
-
 
 	public void AddAutoLoadEntry(int Address, byte[] Data)
 	{

@@ -1,3 +1,15 @@
+/*
+* NDSLabelList.java
+* Definition of NDSLabel class which represents registers
+* and other important addresses in memory. Also includes
+* a list of these memory regions. 
+*
+* Pedro Javier Fernández
+* 12/06/2022 (DD/MM/YYYY)
+*
+* See project license file for license information.
+*/ 
+
 package ntrghidra;
 
 import java.util.ArrayList;

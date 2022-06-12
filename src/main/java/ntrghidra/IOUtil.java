@@ -1,3 +1,13 @@
+/*
+* IOUtil.java
+* Helper methods to manipulate bytes
+*
+* Pedro Javier Fernández
+* 12/06/2022 (DD/MM/YYYY)
+*
+* See project license file for license information.
+*/ 
+
 package ntrghidra;
 
 import java.nio.ByteBuffer;

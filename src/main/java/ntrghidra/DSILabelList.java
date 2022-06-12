@@ -1,3 +1,15 @@
+/*
+* DSILabelList.java
+* Definition of DSILabel class which represents registers
+* and other important addresses in memory exclusive to the
+* DSi console. Also includes a list of these memory regions. 
+*
+* Pedro Javier Fernández
+* 12/06/2022 (DD/MM/YYYY)
+*
+* See project license file for license information.
+*/ 
+
 package ntrghidra;
 
 import java.util.ArrayList;
@@ -5,7 +17,6 @@ import java.util.List;
 
 
 public class DSILabelList {
-
 	//This internal class represents a location of interest (registers, i/o, etc)
 	public class DSILabel {
 	    String name;
@@ -117,7 +128,7 @@ public class DSILabelList {
 		
 		
 		
-		
+	
 		
 		/*ARM7*/
 		
@@ -162,7 +173,6 @@ public class DSILabelList {
 		_ARM7labels.add(new DSILabel("REG_POWCNT2", 0x4000304));
 		_ARM7labels.add(new DSILabel("REG_BIOSPROT", 0x4000308));
 		
-		
 		//ARM7 Sound Registers (NOTE: sound channle specific registers missing)
 		_ARM7labels.add(new DSILabel("Sound_Channels_0_to_15", 0x4000400));
 		//...
@@ -174,7 +184,6 @@ public class DSILabelList {
 		_ARM7labels.add(new DSILabel("REG_SNDCAP0LEN", 0x4000514));
 		_ARM7labels.add(new DSILabel("REG_SNDCAP1DAD", 0x4000518));
 		_ARM7labels.add(new DSILabel("REG_SNDCAP1LEN", 0x400051C));
-		
 		
 		//ARM7 DSi Extra Registers
 		//not included
@@ -190,7 +199,6 @@ public class DSILabelList {
 		_ARM7labels.add(new DSILabel("Wifi_WS0_Region", 0x4800000));
 		_ARM7labels.add(new DSILabel("Wifi_WS1_Region", 0x4808000));
 		
-		
 		//ARM7 Hardcoded RAM Addresses for Exception Handling
 		_ARM7labels.add(new DSILabel("DSi7_IRQ_IF2_Check_Bits_DSi_only)", 0x380FFC0));
 		_ARM7labels.add(new DSILabel("NDS7_Debug_Stacktop_Debug_Vector", 0x380FFDC));
@@ -199,6 +207,7 @@ public class DSILabelList {
 	
 	}
 	
+	// Singleton pattern 
 	public static DSILabelList getInstance()
 	{
 		if(_instance==null)

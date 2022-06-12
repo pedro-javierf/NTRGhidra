@@ -1,3 +1,16 @@
+/*
+* CRT0.java
+* CRT0 is one of the first initialization routines/code
+* that is present in NDS games. This class contains method
+* to work with game information that is compressed and 
+* decompress it.
+*
+* Pedro Javier Fernández
+* 12/06/2022 (DD/MM/YYYY)
+*
+* See project license file for license information.
+*/ 
+
 package ntrghidra;
 
 import java.io.DataOutputStream;

@@ -1,3 +1,13 @@
+/*
+* NDS.java
+* Definition of the NDS binary format
+*
+* Pedro Javier Fernández
+* 12/06/2022 (DD/MM/YYYY)
+*
+* See project license file for license information.
+*/ 
+
 package ntrghidra;
 
 import java.io.IOException;

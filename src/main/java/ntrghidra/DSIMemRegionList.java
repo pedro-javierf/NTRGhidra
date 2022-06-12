@@ -1,3 +1,15 @@
+/*
+* NDSIMemRegionList.java
+* Definition of DSIMemRegionList class and
+* list of these memory regions. These are
+* DSi only memory regions !!!
+*
+* Pedro Javier Fernández
+* 12/06/2022 (DD/MM/YYYY)
+*
+* See project license file for license information.
+*/ 
+
 package ntrghidra;
 
 import java.util.ArrayList;
@@ -28,7 +40,6 @@ public class DSIMemRegionList {
 		    public boolean write() {return write;}
 		    public boolean execute() {return execute;}
 		}
-
 		
 		//This class uses a singleton pattern
 		private static DSIMemRegionList _instance = null;

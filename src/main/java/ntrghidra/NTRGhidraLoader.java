@@ -13,13 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+/*
+* NTRGhidraLoader.java
+* Main plugin file and entrypoint code. 
+*
+* Pedro Javier Fernández
+* 12/06/2022 (DD/MM/YYYY)
+*
+* See project license file for license information.
+*/ 
+
 package ntrghidra;
 
+// Java standard utilities
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
 
+// Ghidra Imports: IMPORTANT, these may change with Ghidra updates
 import docking.widgets.OptionDialog;
 import ghidra.app.util.Option;
 import ghidra.app.util.bin.BinaryReader;
@@ -43,7 +56,7 @@ import ntrghidra.NDSMemRegionList.NDSMemRegion;
 import static ghidra.app.util.MemoryBlockUtils.createInitializedBlock;
 
 /**
- * TODO: Provide class-level documentation that describes what this loader does.
+ * Main entrypoint class
  */
 public class NTRGhidraLoader extends AbstractLibrarySupportLoader {
 
@@ -53,9 +66,6 @@ public class NTRGhidraLoader extends AbstractLibrarySupportLoader {
 	
 	@Override
 	public String getName() {
-
-		// TODO: Name the loader.  This name must match the name of the loader in the .opinion 
-		// files.
 		return "Nintendo DS (NTR) and DSi (TWL)";
 	}
 
@@ -103,7 +113,8 @@ public class NTRGhidraLoader extends AbstractLibrarySupportLoader {
 	
 	@Override
 	public Collection<LoadSpec> findSupportedLoadSpecs(ByteProvider provider) throws IOException {
-		// In this callback loader should decide whether it able to process the file and return instance of the class LoadSpec, telling user how file can be processed*/
+		// In this callback loader should decide whether it able to process the file and return instance of the class LoadSpec,
+		// telling user how file can be processed
 		
 		BinaryReader reader = new BinaryReader(provider, true);
 		
@@ -162,7 +173,6 @@ public class NTRGhidraLoader extends AbstractLibrarySupportLoader {
 		}
 	}
 	
-	
 	//ARM7 has support for overlays as well, even compressed, but they have never been used in comercial games.
 	void loadARM7Overlays(ByteProvider provider, Program program, NDS romparser, MessageLog log, FlatProgramAPI fpa, TaskMonitor monitor) throws IOException, AddressOverflowException{
 		BinaryReader reader = new BinaryReader(provider, true);
@@ -178,7 +188,6 @@ public class NTRGhidraLoader extends AbstractLibrarySupportLoader {
 				i++;
 		}
 	}
-	
 	
 	@Override
 	protected void load(ByteProvider provider, LoadSpec loadSpec, List<Option> options,Program program, TaskMonitor monitor, MessageLog log) throws CancelledException, IOException
@@ -202,7 +211,6 @@ public class NTRGhidraLoader extends AbstractLibrarySupportLoader {
 				int arm9_entrypoint = romParser.Header.MainEntryAddress;
 				int arm9_ram_base = romParser.Header.MainRamAddress;
 				int arm9_size = romParser.Header.MainSize;
-				
 				
 				if(usesNintendoSDK) //try to apply decompression
 				{
@@ -258,7 +266,6 @@ public class NTRGhidraLoader extends AbstractLibrarySupportLoader {
 				api.addEntryPoint(api.toAddr(arm9_entrypoint));
 				api.disassemble(api.toAddr(arm9_entrypoint));
 				api.createFunction(api.toAddr(arm9_entrypoint), "_entry_arm9");
-				
 			}
 			else //ARM7
 			{

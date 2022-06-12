@@ -1,3 +1,14 @@
+/*
+* NDSMemRegionList.java
+* Definition of NDSMemRegionList class and
+* list of these memory regions.
+*
+* Pedro Javier Fernández
+* 12/06/2022 (DD/MM/YYYY)
+*
+* See project license file for license information.
+*/ 
+
 package ntrghidra;
 
 import java.util.ArrayList;
