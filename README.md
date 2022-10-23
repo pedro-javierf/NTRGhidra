@@ -1,10 +1,17 @@
 # NTRGhidra
+
+```diff
+! This project is looking for maintainers and contributors --> If you'd like to join this effort
+! and contribute or administer the project in any way, please open an issue to get in touch. Thank you!
+```
+
 ![](https://img.shields.io/github/issues/pedro-javierf/NTRGhidra/bug)<br>
 A Nintendo DS Loader for Ghidra
 
-Latest Ghidra version supported: 10.1.4 & 10.1.5
-
 ![NTRGhidra a Nintendo DS Loader for Ghidra](https://user-images.githubusercontent.com/16199912/56060896-12690380-5d36-11e9-802e-8c7e70cd481e.png)
+
+Latest Ghidra versions supported: 10.1.4 & 10.1.5
+
 
 # License
 NTRGhidra is released under the ![Apache License 2.0](https://github.com/pedro-javierf/NTRGhidra/blob/master/LICENSE).
