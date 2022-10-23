@@ -31,8 +31,10 @@ If you just want to install the loader into a existing Ghidra installation:
 1. Download the .zip from the [releases page](https://github.com/pedro-javierf/NTRGhidra/releases) (Or build the project yourself from the code, instructions below).
 2. Put the .zip into the GHIDRA_INSTALL_DIR/Extensions/Ghidra folder
 3. In the initial Ghidra window (not in the Code Browser), open the "File" menu, and select "Install Extensions". Click the small 'plus' icon in the top right of the window, and select the extension zip file downloaded. This should add an entry into the extensions list. Make sure it is checked and click OK.
+
 ![Step 1](install1.png)
 ![Step 2](install2.PNG)
+
 4. Restart Ghidra.
 
 # How to Build
