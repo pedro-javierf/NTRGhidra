@@ -10,7 +10,7 @@ A Nintendo DS Loader for Ghidra
 
 ![NTRGhidra a Nintendo DS Loader for Ghidra](https://user-images.githubusercontent.com/16199912/56060896-12690380-5d36-11e9-802e-8c7e70cd481e.png)
 
-Latest Ghidra versions supported: 10.1.4 & 10.1.5
+Latest Ghidra versions supported: 10.2.2
 
 
 # License
