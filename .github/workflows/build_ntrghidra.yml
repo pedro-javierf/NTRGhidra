@@ -1,0 +1,35 @@
+name: Build NTRGhidra
+on:
+  release:
+    types:
+      - created
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up JDK
+      uses: actions/setup-java@v3
+      with:
+        java-version: ${{vars.JDK_VERSION}}
+        distribution: 'temurin' # Eclipse JDK
+        server-id: github
+        settings-path: ${{ github.workspace }}
+    - name: Setup Gradle
+      uses: gradle/gradle-build-action@67421db6bd0bf253fb4bd25b31ebb98943c375e1
+      with:
+        gradle-version: ${{env.GRADLE_VERSION}}
+    - name: Setup Ghidra
+      uses: er28-0652/setup-ghidra@master
+      with:
+        version: ${{vars.GHIDRA_BUILD_VERSION}}
+    - name: Build
+      run: "gradle"
+    - name: Release
+      uses: shogo82148/actions-upload-release-asset@v1
+      with:
+        upload_url: ${{ github.event.release.upload_url }}
+        asset_path: "dist/ghidra_*_NTRGhidra.zip"
