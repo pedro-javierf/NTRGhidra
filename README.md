@@ -48,7 +48,8 @@ These are the basic steps to debug and build the loader. You must have a Ghidra 
 3. In Eclipse, install the Ghidra Development Extension. Click Help > "Install New Software" (https://stackoverflow.com/questions/31553376/eclipse-how-to-install-a-plugin-manually)
 4. After the extension is installed, clone/download this repository, which contains an Eclipse project.
 5. Open the project with Eclipse (File > Open Projects from File System)
-6. Build: Select "File > Export", and then choose "Ghidra > Ghidra Module Extension". You can then use a local Gradle installation or an online build system.
+6. You may need to reconnect Ghidra to the project by right clicking the project in Eclipse, and doing GhidraDev -> Link Ghidra...
+7. Build: Select "File > Export", and then choose "Ghidra > Ghidra Module Extension". You can then use a local Gradle installation or an online build system.
 
 # Acknowledgements
 * Special thanks to [gbatek](https://problemkaputt.de/gbatek.htm) for ds technical info

@@ -6,3 +6,6 @@
 
 # Ignore bin folder
 /bin
+
+# Ignore output folder
+/dist
