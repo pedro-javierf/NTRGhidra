@@ -18,7 +18,7 @@
 		<link>
 			<name>Ghidra</name>
 			<type>2</type>
-			<location>D:/Tools/Ghidra/ghidra_10.2.2_PUBLIC</location>
+			<location>/opt/ghidra11</location>
 		</link>
 	</linkedResources>
 </projectDescription>
