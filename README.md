@@ -1,16 +1,10 @@
-# NTRGhidra
+# NTRGhidra ![](https://img.shields.io/github/issues/pedro-javierf/NTRGhidra/bug)<br>
 
-```diff
-! This project is looking for maintainers and contributors --> If you'd like to join this effort
-! and contribute or administer the project in any way, please open an issue to get in touch. Thank you!
-```
-
-![](https://img.shields.io/github/issues/pedro-javierf/NTRGhidra/bug)<br>
 A Nintendo DS Loader for Ghidra
 
 ![NTRGhidra a Nintendo DS Loader for Ghidra](https://user-images.githubusercontent.com/16199912/56060896-12690380-5d36-11e9-802e-8c7e70cd481e.png)
 
-Latest Ghidra versions supported: 11.0.1 (03/03/2024 | dd/mm/yyyy)
+Latest Ghidra versions supported: 11.0.2 (30/03/2024 | dd/mm/yyyy)
 
 
 # License
@@ -22,8 +16,13 @@ NTRGhidra is released under the ![Apache License 2.0](https://github.com/pedro-j
 * Solve known problems reported in the ![issues](https://github.com/pedro-javierf/NTRGhidra/issues) 
 * Support by starring the project.
 
+```diff
+! This project is looking for maintainers and contributors --> If you'd like to join this effort
+! and contribute or administer the project in any way, please open an issue to get in touch. Thank you!
+```
+
 # Features
-A list of Completed / In Progress / To-Do features is available in [this listing](https://github.com/pedro-javierf/NTRGhidra/projects/1)
+A list of In Progress / To-Do / Completed features is available in [this listing](https://github.com/pedro-javierf/NTRGhidra/projects/1)
 
 # Installation
 If you just want to install the loader into a existing Ghidra installation:
