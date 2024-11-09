@@ -9,3 +9,6 @@
 
 # Ignore output folder
 /dist
+
+# Ignore Eclipse settings
+.settings/
