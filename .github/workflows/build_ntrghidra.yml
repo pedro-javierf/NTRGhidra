@@ -32,7 +32,7 @@ jobs:
           gradle-version: ${{ env.GRADLE_VERSION }}
 
       - name: Setup Ghidra
-        uses: er28-0652/setup-ghidra@master
+        uses: antoniovazquezblanco/setup-ghidra@v2.0.19
         with:
           version: ${{ vars.GHIDRA_BUILD_VERSION }}
 
