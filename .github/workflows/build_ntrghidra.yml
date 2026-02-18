@@ -25,9 +25,9 @@ jobs:
     - name: Setup Ghidra
       uses: er28-0652/setup-ghidra@master
       with:
-        version: 12.0.3_PUBLIC
+        version: ${{vars.GHIDRA_BUILD_VERSION}}
     - name: Build
-      run: ./gradlew build
+      run: "gradle"
     - name: Release
       uses: shogo82148/actions-upload-release-asset@v1
       with:
