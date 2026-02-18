@@ -43,6 +43,7 @@ import ghidra.program.model.mem.Memory;
 import ghidra.program.model.mem.MemoryBlock;
 import ghidra.util.exception.CancelledException;
 import ghidra.util.task.TaskMonitor;
+import ghidra.app.util.Option;
 import ntrghidra.NDS.RomOVT;
 import ntrghidra.NDSLabelList.NDSLabel;
 import ntrghidra.NDSMemRegionList.NDSMemRegion;
@@ -186,44 +187,44 @@ public class NTRGhidraLoader extends AbstractLibrarySupportLoader {
 		}
 	}
 
-    @SuppressWarnings("resource")
-    @Override
+	@SuppressWarnings("resource")
+	@Override
 	protected void load(final Program program, final ImporterSettings importerSettings) throws CancelledException, IOException
 	{
 		FlatProgramAPI api = new FlatProgramAPI(program, importerSettings.monitor());
 		Memory mem = program.getMemory();
 
-        importerSettings.monitor().setMessage("Loading Nintendo DS (NTR) binary...");
-		
+		importerSettings.monitor().setMessage("Loading Nintendo DS (NTR) binary...");
+        
 		//Handles the NDS format in detail
 		NDS romParser = new NDS(importerSettings.provider());
-		
+        
 		try
 		{
 			if(!chosenCPU) //ARM9
 			{
-                importerSettings.monitor().setMessage("Loading Nintendo DS ARM9 binary...");
-				
+				importerSettings.monitor().setMessage("Loading Nintendo DS ARM9 binary...");
+                
 				//Read the important values from the header. 
 				int arm9_file_offset = romParser.Header.MainRomOffset;
 				int arm9_entrypoint = romParser.Header.MainEntryAddress;
 				int arm9_ram_base = romParser.Header.MainRamAddress;
 				int arm9_size = romParser.Header.MainSize;
-				
+                
 				if(usesNintendoSDK) //try to apply decompression
 				{
 					//Get decompressed blob
 					byte decompressedBytes[] = romParser.GetDecompressedARM9();
-					
+                    
 					/// Main RAM block: has to be created without the Flat API.
 					Address addr = program.getAddressFactory().getDefaultAddressSpace().getAddress(arm9_ram_base);
 					MemoryBlock block = mem.createInitializedBlock("ARM9_Main_Memory", addr, decompressedBytes.length, (byte)0x00, importerSettings.monitor(), false);
-					
+                    
 					//Set properties
 					block.setRead(true);
 					block.setWrite(true);
 					block.setExecute(true);
-					
+                    
 					//Fill the main memory segment with the decompressed data/code.
 					mem.setBytes(api.toAddr(arm9_ram_base), decompressedBytes);
 				}
@@ -231,35 +232,35 @@ public class NTRGhidraLoader extends AbstractLibrarySupportLoader {
 				{
 					//read arm9 blob
 					byte romBytes[] = importerSettings.provider().readBytes(arm9_file_offset, arm9_size);
-					
+                    
 					/// Main RAM block: has to be created without the Flat API.
 					Address addr = program.getAddressFactory().getDefaultAddressSpace().getAddress(arm9_ram_base);
 					MemoryBlock block = mem.createInitializedBlock("ARM9_Main_Memory", addr, arm9_size, (byte)0x00, importerSettings.monitor(), false);
-					
+                    
 					//Set properties
 					block.setRead(true);
 					block.setWrite(true);
 					block.setExecute(true);
-					
+                    
 					//Fill the main memory segment with the data from the binary directly
 					mem.setBytes(api.toAddr(arm9_ram_base), romBytes);
 				}
-					
+                    
 				//Uninitialized memory regions
 				for(NDSMemRegion r: NDSMemRegionList.getInstance().getARM9Regions())
 				{
 					api.createMemoryBlock(r.name(), api.toAddr(r.addr()), null, r.size(), true);
 				}
-				
+                
 				//Labels (REGISTERS, others, etc.)
 				for(NDSLabel l: NDSLabelList.getInstance().getARM9Labels())
 				{
 					api.createLabel(api.toAddr(l.addr()),l.name(),true);
 				}
-				
+                
 				//Load overlays (segments of memory that are usually loaded at the same address/regions)
 				loadARM9Overlays(importerSettings.provider(),program, romParser, importerSettings.log(), api, importerSettings.monitor());
-				
+                
 				//Set entrypoint
 				api.addEntryPoint(api.toAddr(arm9_entrypoint));
 				api.disassemble(api.toAddr(arm9_entrypoint));
@@ -267,50 +268,50 @@ public class NTRGhidraLoader extends AbstractLibrarySupportLoader {
 			}
 			else //ARM7
 			{
-                importerSettings.monitor().setMessage("Loading Nintendo DS ARM7 binary...");
+				importerSettings.monitor().setMessage("Loading Nintendo DS ARM7 binary...");
 				int arm7_file_offset = romParser.Header.SubRomOffset;
 				int arm7_entrypoint = romParser.Header.SubEntryAddress;
 				int arm7_ram_base = romParser.Header.SubRamAddress;
 				int arm7_size = romParser.Header.SubSize;
-				
+                
 				//Create ARM7 Memory Map
 				Address addr = program.getAddressFactory().getDefaultAddressSpace().getAddress(arm7_ram_base);
 				MemoryBlock block = program.getMemory().createInitializedBlock("ARM7_Main_Memory", addr, arm7_size, (byte)0x00, importerSettings.monitor(), false);
-				
+                
 				//Set properties
 				block.setRead(true);
 				block.setWrite(true);
 				block.setExecute(true);
-				
+                
 				//Fill with the actual contents from file
-                //noinspection resource
-                byte romBytes[] = importerSettings.provider().readBytes(arm7_file_offset, arm7_size);
+				//noinspection resource
+				byte romBytes[] = importerSettings.provider().readBytes(arm7_file_offset, arm7_size);
 				program.getMemory().setBytes(addr, romBytes);
-				
+                
 				//Uninitialized memory regions
 				for(NDSMemRegion r: NDSMemRegionList.getInstance().getARM7Regions())
 				{
 					api.createMemoryBlock(r.name(), api.toAddr(r.addr()), null, r.size(), true);
 				}
-				
+                
 				//Labels (REGISTERS, others, etc.)
 				for(NDSLabel l: NDSLabelList.getInstance().getARM7Labels())
 				{
 					api.createLabel(api.toAddr(l.addr()),l.name(),true);
 				}
-				
+                
 				//Load overlays (segments of memory that are usually loaded at the same address/regions)
 				loadARM7Overlays(importerSettings.provider(),program, romParser, importerSettings.log(), api, importerSettings.monitor());
-				
+                
 				//Set entrypoint
 				api.addEntryPoint(api.toAddr(arm7_entrypoint));
 				api.disassemble(api.toAddr(arm7_entrypoint));
 				api.createFunction(api.toAddr(arm7_entrypoint), "_entry_arm7");
-			}	
+			}   
 		}
 		catch (Exception e) {
 			e.printStackTrace();
-            importerSettings.log().appendException(e);
+			importerSettings.log().appendException(e);
 		}
 	}
 
