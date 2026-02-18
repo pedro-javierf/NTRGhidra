@@ -27,14 +27,8 @@
 package ntrghidra;
 
 // Java standard utilities
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.*;
 
-// Ghidra Imports: IMPORTANT, these may change with Ghidra updates
 import docking.widgets.OptionDialog;
-import ghidra.app.util.Option;
 import ghidra.app.util.bin.BinaryReader;
 import ghidra.app.util.bin.ByteProvider;
 import ghidra.app.util.importer.MessageLog;
@@ -45,13 +39,20 @@ import ghidra.program.model.address.Address;
 import ghidra.program.model.address.AddressOverflowException;
 import ghidra.program.model.lang.LanguageCompilerSpecPair;
 import ghidra.program.model.listing.Program;
-import ghidra.program.model.mem.Memory;      //	Interface for Memory.
-import ghidra.program.model.mem.MemoryBlock; // Interface that defines a block in memory.
+import ghidra.program.model.mem.Memory;
+import ghidra.program.model.mem.MemoryBlock;
 import ghidra.util.exception.CancelledException;
 import ghidra.util.task.TaskMonitor;
 import ntrghidra.NDS.RomOVT;
 import ntrghidra.NDSLabelList.NDSLabel;
 import ntrghidra.NDSMemRegionList.NDSMemRegion;
+import org.apache.commons.compress.utils.Lists;
+
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Collection;
+import java.util.List;
 
 import static ghidra.app.util.MemoryBlockUtils.createInitializedBlock;
 
@@ -60,7 +61,7 @@ import static ghidra.app.util.MemoryBlockUtils.createInitializedBlock;
  */
 public class NTRGhidraLoader extends AbstractLibrarySupportLoader {
 
-	private final String versionStr = "v1.4.4.0";
+	private static final String versionStr = "v1.4.4.2";
 	private boolean chosenCPU;
 	private boolean usesNintendoSDK;
 	
@@ -93,51 +94,47 @@ public class NTRGhidraLoader extends AbstractLibrarySupportLoader {
 	
 	protected boolean promptToAskSDK() {
 
-		String message = "<html>Nintendo DS binaries from official games use a known SDK compression algorithm. <br><br> If you are loading a comercial game, click YES. \"";
+		String message = "<html>Nintendo DS binaries from official games use a known SDK compression algorithm. <br><br> If you are loading a commercial game, click YES. \"";
 		//@formatter:off
 			int choice =
 					OptionDialog.showOptionNoCancelDialog(
 					null,
-					"Comercial ROM or Homebrew?",
+					"Commercial ROM or Homebrew?",
 					message,
 					"<html> <font color=\"red\">NO</font>",
 					"<html> <font color=\"green\">YES</font>",
 					OptionDialog.QUESTION_MESSAGE);
 		//@formatter:on
 
-		if (choice == OptionDialog.OPTION_TWO) {
-			return true;
-		}
-		return false; 
-	}
-	
-	@Override
-	public Collection<LoadSpec> findSupportedLoadSpecs(ByteProvider provider) throws IOException {
-		// In this callback loader should decide whether it able to process the file and return instance of the class LoadSpec,
-		// telling user how file can be processed
-		
-		BinaryReader reader = new BinaryReader(provider, true);
-		
-		//Nintendo logo CRC
-		if ((reader.readUnsignedShort(0x15C)) == (0xCF56))
-		{
-			//Nintendo DS has two CPUs. Ask the user which code he/she wants to work with, the ARM7 one or the ARM9 one.
-			this.chosenCPU = promptToAskCPU();
-			
-			//Decompression only makes sense for ARM9
-			if(!chosenCPU)
-				this.usesNintendoSDK = promptToAskSDK();
-			
-			//Setup Ghidra with the chosen CPU.
-			if(chosenCPU)
-				return List.of(new LoadSpec(this, 0, new LanguageCompilerSpecPair("ARM:LE:32:v4t", "default"), true));
-			
-			return List.of(new LoadSpec(this, 0, new LanguageCompilerSpecPair("ARM:LE:32:v5t", "default"), true));
-		}
-		return new ArrayList<>();
-	}
-	
-	
+        return choice == OptionDialog.OPTION_TWO;
+    }
+
+    @Override
+    public Collection<LoadSpec> findSupportedLoadSpecs(ByteProvider provider) throws IOException {
+        // In this callback loader should decide whether it able to process the file and return instance of the class LoadSpec,
+        // telling user how file can be processed
+
+        BinaryReader reader = new BinaryReader(provider, true);
+
+        //Nintendo logo CRC
+        int crcLogo = reader.readUnsignedShort(0x15C);
+        this.usesNintendoSDK = promptToAskSDK();
+        if (usesNintendoSDK) {//If commercial game, ensure logo CRC. Otherwise, we don't care.
+            if (crcLogo != 0xCF56) {
+                return Lists.newArrayList();
+            }
+        }
+
+        //Nintendo DS has two CPUs. Ask the user which code he/she wants to work with, the ARM7 one or the ARM9 one.
+        this.chosenCPU = promptToAskCPU();
+
+        //Setup Ghidra with the chosen CPU.
+        if(chosenCPU)
+            return List.of(new LoadSpec(this, 0, new LanguageCompilerSpecPair("ARM:LE:32:v4t", "default"), true));
+
+        return List.of(new LoadSpec(this, 0, new LanguageCompilerSpecPair("ARM:LE:32:v5t", "default"), true));
+    }
+
 	//https://pedro-javierf.github.io/devblog/advancedghidraloader/
 	void loadARM9Overlays(ByteProvider provider, Program program, NDS romparser, MessageLog log, FlatProgramAPI fpa, TaskMonitor monitor) throws IOException, AddressOverflowException{
 		BinaryReader reader = new BinaryReader(provider, true);
@@ -188,23 +185,24 @@ public class NTRGhidraLoader extends AbstractLibrarySupportLoader {
 				i++;
 		}
 	}
-	
-	@Override
-	protected void load(ByteProvider provider, LoadSpec loadSpec, List<Option> options,Program program, TaskMonitor monitor, MessageLog log) throws CancelledException, IOException
+
+    @SuppressWarnings("resource")
+    @Override
+	protected void load(final Program program, final ImporterSettings importerSettings) throws CancelledException, IOException
 	{
-		FlatProgramAPI api = new FlatProgramAPI(program, monitor);
+		FlatProgramAPI api = new FlatProgramAPI(program, importerSettings.monitor());
 		Memory mem = program.getMemory();
-		
-		monitor.setMessage("Loading Nintendo DS (NTR) binary...");	
+
+        importerSettings.monitor().setMessage("Loading Nintendo DS (NTR) binary...");
 		
 		//Handles the NDS format in detail
-		NDS romParser = new NDS(provider);
+		NDS romParser = new NDS(importerSettings.provider());
 		
 		try
 		{
 			if(!chosenCPU) //ARM9
 			{
-				monitor.setMessage("Loading Nintendo DS ARM9 binary...");
+                importerSettings.monitor().setMessage("Loading Nintendo DS ARM9 binary...");
 				
 				//Read the important values from the header. 
 				int arm9_file_offset = romParser.Header.MainRomOffset;
@@ -219,7 +217,7 @@ public class NTRGhidraLoader extends AbstractLibrarySupportLoader {
 					
 					/// Main RAM block: has to be created without the Flat API.
 					Address addr = program.getAddressFactory().getDefaultAddressSpace().getAddress(arm9_ram_base);
-					MemoryBlock block = mem.createInitializedBlock("ARM9_Main_Memory", addr, decompressedBytes.length, (byte)0x00, monitor, false);
+					MemoryBlock block = mem.createInitializedBlock("ARM9_Main_Memory", addr, decompressedBytes.length, (byte)0x00, importerSettings.monitor(), false);
 					
 					//Set properties
 					block.setRead(true);
@@ -232,11 +230,11 @@ public class NTRGhidraLoader extends AbstractLibrarySupportLoader {
 				else
 				{
 					//read arm9 blob
-					byte romBytes[] = provider.readBytes(arm9_file_offset, arm9_size); 
+					byte romBytes[] = importerSettings.provider().readBytes(arm9_file_offset, arm9_size);
 					
 					/// Main RAM block: has to be created without the Flat API.
 					Address addr = program.getAddressFactory().getDefaultAddressSpace().getAddress(arm9_ram_base);
-					MemoryBlock block = mem.createInitializedBlock("ARM9_Main_Memory", addr, arm9_size, (byte)0x00, monitor, false);
+					MemoryBlock block = mem.createInitializedBlock("ARM9_Main_Memory", addr, arm9_size, (byte)0x00, importerSettings.monitor(), false);
 					
 					//Set properties
 					block.setRead(true);
@@ -260,7 +258,7 @@ public class NTRGhidraLoader extends AbstractLibrarySupportLoader {
 				}
 				
 				//Load overlays (segments of memory that are usually loaded at the same address/regions)
-				loadARM9Overlays(provider,program, romParser, log, api, monitor);
+				loadARM9Overlays(importerSettings.provider(),program, romParser, importerSettings.log(), api, importerSettings.monitor());
 				
 				//Set entrypoint
 				api.addEntryPoint(api.toAddr(arm9_entrypoint));
@@ -269,7 +267,7 @@ public class NTRGhidraLoader extends AbstractLibrarySupportLoader {
 			}
 			else //ARM7
 			{
-				monitor.setMessage("Loading Nintendo DS ARM7 binary...");
+                importerSettings.monitor().setMessage("Loading Nintendo DS ARM7 binary...");
 				int arm7_file_offset = romParser.Header.SubRomOffset;
 				int arm7_entrypoint = romParser.Header.SubEntryAddress;
 				int arm7_ram_base = romParser.Header.SubRamAddress;
@@ -277,7 +275,7 @@ public class NTRGhidraLoader extends AbstractLibrarySupportLoader {
 				
 				//Create ARM7 Memory Map
 				Address addr = program.getAddressFactory().getDefaultAddressSpace().getAddress(arm7_ram_base);
-				MemoryBlock block = program.getMemory().createInitializedBlock("ARM7_Main_Memory", addr, arm7_size, (byte)0x00, monitor, false);	
+				MemoryBlock block = program.getMemory().createInitializedBlock("ARM7_Main_Memory", addr, arm7_size, (byte)0x00, importerSettings.monitor(), false);
 				
 				//Set properties
 				block.setRead(true);
@@ -285,7 +283,8 @@ public class NTRGhidraLoader extends AbstractLibrarySupportLoader {
 				block.setExecute(true);
 				
 				//Fill with the actual contents from file
-				byte romBytes[] = provider.readBytes(arm7_file_offset, arm7_size);			
+                //noinspection resource
+                byte romBytes[] = importerSettings.provider().readBytes(arm7_file_offset, arm7_size);
 				program.getMemory().setBytes(addr, romBytes);
 				
 				//Uninitialized memory regions
@@ -301,7 +300,7 @@ public class NTRGhidraLoader extends AbstractLibrarySupportLoader {
 				}
 				
 				//Load overlays (segments of memory that are usually loaded at the same address/regions)
-				loadARM7Overlays(provider,program, romParser, log, api, monitor);
+				loadARM7Overlays(importerSettings.provider(),program, romParser, importerSettings.log(), api, importerSettings.monitor());
 				
 				//Set entrypoint
 				api.addEntryPoint(api.toAddr(arm7_entrypoint));
@@ -311,7 +310,7 @@ public class NTRGhidraLoader extends AbstractLibrarySupportLoader {
 		}
 		catch (Exception e) {
 			e.printStackTrace();
-			log.appendException(e);
+            importerSettings.log().appendException(e);
 		}
 	}
 
