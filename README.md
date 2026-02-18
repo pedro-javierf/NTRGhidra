@@ -1,8 +1,7 @@
 # NTRGhidra ![](https://img.shields.io/github/issues/pedro-javierf/NTRGhidra/bug)<br>
 
 A Nintendo DS Loader for Ghidra
-<img width="2048" height="512" alt="ntrghidra" src="https://github.com/user-attachments/assets/c3c52cee-6db9-4966-85a4-e0e1d899cd94" />
-
+<img width="2048" height="512" alt="NTRGhidra Logo" src="https://github.com/user-attachments/assets/aec375d3-3cc9-45cd-9df3-32c076ec68f4" />
 
 Latest Ghidra version supported: 12.0.3 (11/02/2026 | dd/mm/yyyy)
 
