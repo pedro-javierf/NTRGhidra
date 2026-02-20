@@ -64,6 +64,13 @@ public class NTRGhidraLoader extends AbstractLibrarySupportLoader {
 	private static final String versionStr = "v1.4.4.2";
 	private boolean chosenCPU;
 	private boolean usesNintendoSDK;
+	// Keep last context to allow runtime overlay management
+	private NDS lastRomParser = null;
+	private ByteProvider lastProvider = null;
+	private Program lastProgram = null;
+	private MessageLog lastLog = null;
+	private FlatProgramAPI lastApi = null;
+	private TaskMonitor lastMonitor = null;
 	
 	@Override
 	public String getName() {
@@ -136,13 +143,18 @@ public class NTRGhidraLoader extends AbstractLibrarySupportLoader {
     }
 
 	//https://pedro-javierf.github.io/devblog/advancedghidraloader/
-	void loadARM9Overlays(ByteProvider provider, Program program, NDS romparser, MessageLog log, FlatProgramAPI fpa, TaskMonitor monitor) throws IOException, AddressOverflowException{
+		// If overlayIdsToLoad is null -> load all overlays. If empty set -> load none.
+		void loadARM9Overlays(ByteProvider provider, Program program, NDS romparser, MessageLog log, FlatProgramAPI fpa, TaskMonitor monitor, java.util.Set<Integer> overlayIdsToLoad) throws IOException, AddressOverflowException{
 		BinaryReader reader = new BinaryReader(provider, true);
 		
 		int i = 0;
-		for(RomOVT overlay: romparser.getMainOVT())
+			for(RomOVT overlay: romparser.getMainOVT())
 		{
-			if(overlay.Flag.getCompressed())
+				if (overlayIdsToLoad != null && overlayIdsToLoad.isEmpty()) { i++; continue; }
+
+				if (overlayIdsToLoad != null && !overlayIdsToLoad.contains(overlay.Id)) { i++; continue; }
+
+				if(overlay.Flag.getCompressed())
 			{
 				
 				//Compute size of the overlay file
@@ -158,33 +170,42 @@ public class NTRGhidraLoader extends AbstractLibrarySupportLoader {
 				//Decompress
 				byte[] Decompressed = romparser.GetDecompressedOverlay(Compressed);
 				
-				createInitializedBlock(program, true, "overlay_d_"+i, fpa.toAddr(overlay.RamAddress), new ByteArrayInputStream(Decompressed), overlay.RamSize, "", "", true, true, true, log, monitor);
+				String name = "overlay_d_"+overlay.Id;
+				if (program.getMemory().getBlock(name) == null)
+					createInitializedBlock(program, true, name, fpa.toAddr(overlay.RamAddress), new ByteArrayInputStream(Decompressed), overlay.RamSize, "", "", true, true, true, log, monitor);
 			}
 			else
 			{
 				int fatAddr = romparser.Header.FatOffset + (8 * overlay.FileId);
 				InputStream stream = provider.getInputStream(reader.readInt(fatAddr));
-				createInitializedBlock(program, true, "overlay_"+i, fpa.toAddr(overlay.RamAddress), stream, overlay.RamSize, "", "", true, true, true, log, monitor);
+				String name = "overlay_"+overlay.Id;
+				if (program.getMemory().getBlock(name) == null)
+					createInitializedBlock(program, true, name, fpa.toAddr(overlay.RamAddress), stream, overlay.RamSize, "", "", true, true, true, log, monitor);
 			}
 			i++;
 		}
 	}
 	
 	//ARM7 has support for overlays as well, even compressed, but they have never been used in comercial games.
-	void loadARM7Overlays(ByteProvider provider, Program program, NDS romparser, MessageLog log, FlatProgramAPI fpa, TaskMonitor monitor) throws IOException, AddressOverflowException{
-		BinaryReader reader = new BinaryReader(provider, true);
-		
-		int i = 0;
-		i = 0;
-		for(RomOVT overlay: romparser.getSubOVT())
-		{
-				int fatAddr = romparser.Header.FatOffset + (8 * overlay.FileId);
-				System.out.println("FATADDR: "+fatAddr);
-				InputStream stream = provider.getInputStream(reader.readInt(fatAddr));
-				createInitializedBlock(program, true, "suboverlay_"+i+"_"+overlay.Id, fpa.toAddr(overlay.RamAddress), stream, overlay.RamSize, "", "", true, true, true, log, monitor);
-				i++;
+		void loadARM7Overlays(ByteProvider provider, Program program, NDS romparser, MessageLog log, FlatProgramAPI fpa, TaskMonitor monitor, java.util.Set<Integer> overlayIdsToLoad) throws IOException, AddressOverflowException{
+			BinaryReader reader = new BinaryReader(provider, true);
+
+			int i = 0;
+			i = 0;
+			for(RomOVT overlay: romparser.getSubOVT())
+			{
+					if (overlayIdsToLoad != null && overlayIdsToLoad.isEmpty()) { i++; continue; }
+					if (overlayIdsToLoad != null && !overlayIdsToLoad.contains(overlay.Id)) { i++; continue; }
+
+					int fatAddr = romparser.Header.FatOffset + (8 * overlay.FileId);
+					System.out.println("FATADDR: "+fatAddr);
+					InputStream stream = provider.getInputStream(reader.readInt(fatAddr));
+					String name = "suboverlay_"+overlay.Id;
+					if (program.getMemory().getBlock(name) == null)
+						createInitializedBlock(program, true, name, fpa.toAddr(overlay.RamAddress), stream, overlay.RamSize, "", "", true, true, true, log, monitor);
+					i++;
+			}
 		}
-	}
 
     @SuppressWarnings("resource")
     @Override
@@ -197,7 +218,14 @@ public class NTRGhidraLoader extends AbstractLibrarySupportLoader {
 		
 		//Handles the NDS format in detail
 		NDS romParser = new NDS(importerSettings.provider());
-		
+		// store for runtime manager
+		lastRomParser = romParser;
+		lastProvider = importerSettings.provider();
+		lastProgram = program;
+		lastLog = importerSettings.log();
+		lastApi = api;
+		lastMonitor = importerSettings.monitor();
+        
 		try
 		{
 			if(!chosenCPU) //ARM9
@@ -258,12 +286,91 @@ public class NTRGhidraLoader extends AbstractLibrarySupportLoader {
 				}
 				
 				//Load overlays (segments of memory that are usually loaded at the same address/regions)
-				loadARM9Overlays(importerSettings.provider(),program, romParser, importerSettings.log(), api, importerSettings.monitor());
-				
+				// Ask user whether to load none/all/choose
+				int choice = javax.swing.JOptionPane.showOptionDialog(null, "Load overlays?", "Overlays",
+						javax.swing.JOptionPane.DEFAULT_OPTION, javax.swing.JOptionPane.QUESTION_MESSAGE,
+						null, new Object[]{"Don't load any", "Load all", "Choose..."}, "Load all");
+				if (choice == 0) {
+					// Don't load any
+					loadARM9Overlays(importerSettings.provider(), program, romParser, importerSettings.log(), api, importerSettings.monitor(), new java.util.HashSet<>());
+				}
+				else if (choice == 1) {
+					// Load all
+					loadARM9Overlays(importerSettings.provider(), program, romParser, importerSettings.log(), api, importerSettings.monitor(), null);
+				}
+				else { // choose
+					java.util.List<RomOVT> overlays = romParser.getMainOVT();
+					java.util.Set<Integer> currently = new java.util.HashSet<>();
+					for (RomOVT o : overlays) {
+						String bn1 = "overlay_"+o.Id;
+						String bn2 = "overlay_d_"+o.Id;
+						if (program.getMemory().getBlock(bn1) != null || program.getMemory().getBlock(bn2) != null) currently.add(o.Id);
+					}
+					java.util.Set<Integer> chosen = OverlaySelectionDialog.showOverlayChooser(null, overlays, currently);
+					if (chosen != null) loadARM9Overlays(importerSettings.provider(), program, romParser, importerSettings.log(), api, importerSettings.monitor(), chosen);
+				}
+                
 				//Set entrypoint
 				api.addEntryPoint(api.toAddr(arm9_entrypoint));
 				api.disassemble(api.toAddr(arm9_entrypoint));
 				api.createFunction(api.toAddr(arm9_entrypoint), "_entry_arm9");
+			}
+
+			// public runtime manager: allow user to choose overlays to load/unload while Ghidra is running
+			public void showOverlayManager() {
+				if (lastRomParser == null || lastProgram == null || lastProvider == null) {
+					OptionDialog.showMessageDialog(null, "No ROM context available", "Overlay Manager");
+					return;
+				}
+				try {
+					boolean isARM9 = !chosenCPU ? true : false;
+					if (isARM9) {
+						java.util.List<RomOVT> overlays = lastRomParser.getMainOVT();
+						java.util.Set<Integer> currently = new java.util.HashSet<>();
+						for (RomOVT o : overlays) {
+							String bn1 = "overlay_"+o.Id;
+							String bn2 = "overlay_d_"+o.Id;
+							if (lastProgram.getMemory().getBlock(bn1) != null || lastProgram.getMemory().getBlock(bn2) != null) currently.add(o.Id);
+						}
+						java.util.Set<Integer> chosen = OverlaySelectionDialog.showOverlayChooser(null, overlays, currently);
+						if (chosen == null) return;
+						// unload ones not chosen
+						for (RomOVT o : overlays) {
+							String bn1 = "overlay_"+o.Id;
+							String bn2 = "overlay_d_"+o.Id;
+							if (!chosen.contains(o.Id)) {
+								MemoryBlock b1 = lastProgram.getMemory().getBlock(bn1);
+								if (b1 != null) lastProgram.getMemory().removeBlock(b1);
+								MemoryBlock b2 = lastProgram.getMemory().getBlock(bn2);
+								if (b2 != null) lastProgram.getMemory().removeBlock(b2);
+							}
+						}
+						// load chosen that are not yet loaded
+						loadARM9Overlays(lastProvider, lastProgram, lastRomParser, lastLog, lastApi, lastMonitor, chosen);
+					}
+					else {
+						java.util.List<RomOVT> overlays = lastRomParser.getSubOVT();
+						java.util.Set<Integer> currently = new java.util.HashSet<>();
+						for (RomOVT o : overlays) {
+							String bn = "suboverlay_"+o.Id;
+							if (lastProgram.getMemory().getBlock(bn) != null) currently.add(o.Id);
+						}
+						java.util.Set<Integer> chosen = OverlaySelectionDialog.showOverlayChooser(null, overlays, currently);
+						if (chosen == null) return;
+						for (RomOVT o : overlays) {
+							String bn = "suboverlay_"+o.Id;
+							if (!chosen.contains(o.Id)) {
+								MemoryBlock b = lastProgram.getMemory().getBlock(bn);
+								if (b != null) lastProgram.getMemory().removeBlock(b);
+							}
+						}
+						loadARM7Overlays(lastProvider, lastProgram, lastRomParser, lastLog, lastApi, lastMonitor, chosen);
+					}
+				}
+				catch (Exception e) {
+					e.printStackTrace();
+					if (lastLog != null) lastLog.appendException(e);
+				}
 			}
 			else //ARM7
 			{
@@ -300,8 +407,26 @@ public class NTRGhidraLoader extends AbstractLibrarySupportLoader {
 				}
 				
 				//Load overlays (segments of memory that are usually loaded at the same address/regions)
-				loadARM7Overlays(importerSettings.provider(),program, romParser, importerSettings.log(), api, importerSettings.monitor());
-				
+				int choice7 = javax.swing.JOptionPane.showOptionDialog(null, "Load overlays?", "Overlays",
+						javax.swing.JOptionPane.DEFAULT_OPTION, javax.swing.JOptionPane.QUESTION_MESSAGE,
+						null, new Object[]{"Don't load any", "Load all", "Choose..."}, "Load all");
+				if (choice7 == 0) {
+					loadARM7Overlays(importerSettings.provider(), program, romParser, importerSettings.log(), api, importerSettings.monitor(), new java.util.HashSet<>());
+				}
+				else if (choice7 == 1) {
+					loadARM7Overlays(importerSettings.provider(), program, romParser, importerSettings.log(), api, importerSettings.monitor(), null);
+				}
+				else {
+					java.util.List<RomOVT> overlays7 = romParser.getSubOVT();
+					java.util.Set<Integer> currently7 = new java.util.HashSet<>();
+					for (RomOVT o : overlays7) {
+						String bn = "suboverlay_"+o.Id;
+						if (program.getMemory().getBlock(bn) != null) currently7.add(o.Id);
+					}
+					java.util.Set<Integer> chosen7 = OverlaySelectionDialog.showOverlayChooser(null, overlays7, currently7);
+					if (chosen7 != null) loadARM7Overlays(importerSettings.provider(), program, romParser, importerSettings.log(), api, importerSettings.monitor(), chosen7);
+				}
+                
 				//Set entrypoint
 				api.addEntryPoint(api.toAddr(arm7_entrypoint));
 				api.disassemble(api.toAddr(arm7_entrypoint));
