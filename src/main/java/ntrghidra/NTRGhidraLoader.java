@@ -65,12 +65,12 @@ public class NTRGhidraLoader extends AbstractLibrarySupportLoader {
 	private boolean chosenCPU;
 	private boolean usesNintendoSDK;
 	// Keep last context to allow runtime overlay management
-	private NDS lastRomParser = null;
-	private ByteProvider lastProvider = null;
-	private Program lastProgram = null;
-	private MessageLog lastLog = null;
-	private FlatProgramAPI lastApi = null;
-	private TaskMonitor lastMonitor = null;
+	private static NDS lastRomParser = null;
+	private static ByteProvider lastProvider = null;
+	private static Program lastProgram = null;
+	private static MessageLog lastLog = null;
+	private static FlatProgramAPI lastApi = null;
+	private static TaskMonitor lastMonitor = null;
 	
 	@Override
 	public String getName() {
@@ -316,14 +316,15 @@ public class NTRGhidraLoader extends AbstractLibrarySupportLoader {
 				api.createFunction(api.toAddr(arm9_entrypoint), "_entry_arm9");
 			}
 
+
 			// public runtime manager: allow user to choose overlays to load/unload while Ghidra is running
-			public void showOverlayManager() {
+			public static void showOverlayManagerDialog() {
 				if (lastRomParser == null || lastProgram == null || lastProvider == null) {
 					OptionDialog.showMessageDialog(null, "No ROM context available", "Overlay Manager");
 					return;
 				}
 				try {
-					boolean isARM9 = !chosenCPU ? true : false;
+					boolean isARM9 = !new NTRGhidraLoader().chosenCPU ? true : false;
 					if (isARM9) {
 						java.util.List<RomOVT> overlays = lastRomParser.getMainOVT();
 						java.util.Set<Integer> currently = new java.util.HashSet<>();
@@ -346,7 +347,7 @@ public class NTRGhidraLoader extends AbstractLibrarySupportLoader {
 							}
 						}
 						// load chosen that are not yet loaded
-						loadARM9Overlays(lastProvider, lastProgram, lastRomParser, lastLog, lastApi, lastMonitor, chosen);
+						new NTRGhidraLoader().loadARM9Overlays(lastProvider, lastProgram, lastRomParser, lastLog, lastApi, lastMonitor, chosen);
 					}
 					else {
 						java.util.List<RomOVT> overlays = lastRomParser.getSubOVT();
@@ -364,7 +365,7 @@ public class NTRGhidraLoader extends AbstractLibrarySupportLoader {
 								if (b != null) lastProgram.getMemory().removeBlock(b);
 							}
 						}
-						loadARM7Overlays(lastProvider, lastProgram, lastRomParser, lastLog, lastApi, lastMonitor, chosen);
+						new NTRGhidraLoader().loadARM7Overlays(lastProvider, lastProgram, lastRomParser, lastLog, lastApi, lastMonitor, chosen);
 					}
 				}
 				catch (Exception e) {
