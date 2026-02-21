@@ -3,7 +3,7 @@ name: Build NTRGhidra
 on:
   push:
     branches:
-      - '*'  # build on every commit
+      - '**'  # build on every commit
   release:
     types:
       - created
