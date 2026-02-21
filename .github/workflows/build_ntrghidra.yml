@@ -26,7 +26,7 @@ jobs:
           settings-path: ${{ github.workspace }}
 
       - name: Setup Gradle
-        uses: gradle/gradle-build-action@67421db6bd0bf253fb4bd25b31ebb98943c375e1
+        uses: gradle/gradle-build-action@67421db0
         with:
           gradle-version: ${{ env.GRADLE_VERSION }}
 
@@ -40,12 +40,12 @@ jobs:
 
       # Upload artifacts to GitHub Actions for every build
       - name: Upload Build Artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: NTRGhidra-build
           path: dist/ghidra_*_NTRGhidra.zip
 
-      # Upload to GitHub Release only on release events
+      # Upload to GitHub Release only when a release is created
       - name: Release
         if: github.event_name == 'release'
         uses: shogo82148/actions-upload-release-asset@v1
