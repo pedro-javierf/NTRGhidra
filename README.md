@@ -1,9 +1,11 @@
-# NTRGhidra ![](https://img.shields.io/github/issues/pedro-javierf/NTRGhidra/bug)<br>
+# NTRGhidra 
 
 A Nintendo DS Loader for Ghidra
 <img width="2048" height="512" alt="NTRGhidra Logo" src="https://github.com/user-attachments/assets/aec375d3-3cc9-45cd-9df3-32c076ec68f4" />
 
 Latest Ghidra version supported: 12.0.3 (11/02/2026 | dd/mm/yyyy)
+
+[![Build NTRGhidra](https://github.com/pedro-javierf/NTRGhidra/actions/workflows/build_ntrghidra.yml/badge.svg)](https://github.com/pedro-javierf/NTRGhidra/actions/workflows/build_ntrghidra.yml) ![](https://img.shields.io/github/issues/pedro-javierf/NTRGhidra/bug)<br>
 
 # Installation
 If you just want to install the loader into a existing Ghidra installation:
