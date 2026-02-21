@@ -3,7 +3,7 @@ name: Build NTRGhidra
 on:
   push:
     branches:
-      - '*'  # build on every commit; replace '*' with specific branches if desired
+      - '*'  # build on every commit
   release:
     types:
       - created
@@ -15,10 +15,11 @@ jobs:
       contents: write
       packages: write
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
       - name: Set up JDK
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           java-version: ${{ vars.JDK_VERSION }}
           distribution: 'temurin'
@@ -26,7 +27,7 @@ jobs:
           settings-path: ${{ github.workspace }}
 
       - name: Setup Gradle
-        uses: gradle/gradle-build-action@67421db0
+        uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: ${{ env.GRADLE_VERSION }}
 
@@ -52,3 +53,5 @@ jobs:
         with:
           upload_url: ${{ github.event.release.upload_url }}
           asset_path: "dist/ghidra_*_NTRGhidra.zip"
+          asset_name: "NTRGhidra.zip"
+          asset_content_type: "application/zip"
