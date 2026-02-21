@@ -1,8 +1,13 @@
 name: Build NTRGhidra
+
 on:
+  push:
+    branches:
+      - '*'  # build on every commit; replace '*' with specific branches if desired
   release:
     types:
       - created
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -10,26 +15,40 @@ jobs:
       contents: write
       packages: write
     steps:
-    - uses: actions/checkout@v3
-    - name: Set up JDK
-      uses: actions/setup-java@v3
-      with:
-        java-version: ${{vars.JDK_VERSION}}
-        distribution: 'temurin' # Eclipse JDK
-        server-id: github
-        settings-path: ${{ github.workspace }}
-    - name: Setup Gradle
-      uses: gradle/gradle-build-action@67421db6bd0bf253fb4bd25b31ebb98943c375e1
-      with:
-        gradle-version: ${{env.GRADLE_VERSION}}
-    - name: Setup Ghidra
-      uses: er28-0652/setup-ghidra@master
-      with:
-        version: ${{vars.GHIDRA_BUILD_VERSION}}
-    - name: Build
-      run: "gradle"
-    - name: Release
-      uses: shogo82148/actions-upload-release-asset@v1
-      with:
-        upload_url: ${{ github.event.release.upload_url }}
-        asset_path: "dist/ghidra_*_NTRGhidra.zip"
+      - uses: actions/checkout@v3
+
+      - name: Set up JDK
+        uses: actions/setup-java@v3
+        with:
+          java-version: ${{ vars.JDK_VERSION }}
+          distribution: 'temurin'
+          server-id: github
+          settings-path: ${{ github.workspace }}
+
+      - name: Setup Gradle
+        uses: gradle/gradle-build-action@67421db6bd0bf253fb4bd25b31ebb98943c375e1
+        with:
+          gradle-version: ${{ env.GRADLE_VERSION }}
+
+      - name: Setup Ghidra
+        uses: er28-0652/setup-ghidra@master
+        with:
+          version: ${{ vars.GHIDRA_BUILD_VERSION }}
+
+      - name: Build
+        run: gradle
+
+      # Upload artifacts to GitHub Actions for every build
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: NTRGhidra-build
+          path: dist/ghidra_*_NTRGhidra.zip
+
+      # Upload to GitHub Release only on release events
+      - name: Release
+        if: github.event_name == 'release'
+        uses: shogo82148/actions-upload-release-asset@v1
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: "dist/ghidra_*_NTRGhidra.zip"
