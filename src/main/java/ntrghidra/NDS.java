@@ -174,7 +174,7 @@ public class NDS
 						Compressed = (0x000000FF & (int)msb & 0x1)==1;
 						AuthenticationCode = (0x000000FF & (int)msb & 0x2)==1;
 					}
-					public boolean getCompressed() {return Compressed;}
+					public boolean isCompressed() {return Compressed;}
 					public boolean getAuthenticationCode() {return AuthenticationCode;}
 				}
 				
