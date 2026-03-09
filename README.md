@@ -1,9 +1,9 @@
 # NTRGhidra 
 
-A Nintendo DS Loader for Ghidra
+A Nintendo DS Loader and plugin for Ghidra
 <img width="2048" height="512" alt="NTRGhidra Logo" src="https://github.com/user-attachments/assets/aec375d3-3cc9-45cd-9df3-32c076ec68f4" />
 
-Latest Ghidra version supported: 12.0.3 (11/02/2026 | dd/mm/yyyy)
+Latest Ghidra version supported: 12.0.4 (09/03/2026 | dd/mm/yyyy)
 
 [![Build NTRGhidra](https://github.com/pedro-javierf/NTRGhidra/actions/workflows/build_ntrghidra.yml/badge.svg)](https://github.com/pedro-javierf/NTRGhidra/actions/workflows/build_ntrghidra.yml) ![](https://img.shields.io/github/issues/pedro-javierf/NTRGhidra/bug)<br>
 
@@ -51,6 +51,8 @@ NTRGhidra is released under the ![Apache License 2.0](https://github.com/pedro-j
 # Features
 A list of In Progress / To-Do / Completed features is available in [this listing](https://github.com/pedro-javierf/NTRGhidra/projects/1)
 
+## Dynamic Overlay Loading example
+![](https://private-user-images.githubusercontent.com/2887824/556133673-1ebfc653-ac13-48a0-a3c1-8a9849ce8d0c.png?jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3NzMwNzY3NDAsIm5iZiI6MTc3MzA3NjQ0MCwicGF0aCI6Ii8yODg3ODI0LzU1NjEzMzY3My0xZWJmYzY1My1hYzEzLTQ4YTAtYTNjMS04YTk4NDljZThkMGMucG5nP1gtQW16LUFsZ29yaXRobT1BV1M0LUhNQUMtU0hBMjU2JlgtQW16LUNyZWRlbnRpYWw9QUtJQVZDT0RZTFNBNTNQUUs0WkElMkYyMDI2MDMwOSUyRnVzLWVhc3QtMSUyRnMzJTJGYXdzNF9yZXF1ZXN0JlgtQW16LURhdGU9MjAyNjAzMDlUMTcxNDAwWiZYLUFtei1FeHBpcmVzPTMwMCZYLUFtei1TaWduYXR1cmU9OWQ3NGMzMDJjNTg5ZDY5MDQ2NGYyOWIyZjM4OWZhMTc2MjZjNWYwZWVhMDM2NTg0ZTA3ZTQzYzY5YzdmZWFkNiZYLUFtei1TaWduZWRIZWFkZXJzPWhvc3QifQ.TznDMaHZ6x3UrMJUp5QVeNW5H_oU80SzaR1dpLvUCw8)
 
 # Acknowledgements
 * Special thanks to [gbatek](https://problemkaputt.de/gbatek.htm) for ds technical info
