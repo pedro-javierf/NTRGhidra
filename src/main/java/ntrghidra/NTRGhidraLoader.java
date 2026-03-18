@@ -39,6 +39,7 @@ import ghidra.program.model.lang.CompilerSpecID;
 import ghidra.program.model.lang.LanguageCompilerSpecPair;
 import ghidra.program.model.listing.Program;
 import ghidra.program.model.mem.MemoryBlock;
+import ghidra.util.Msg;
 import ghidra.util.exception.CancelledException;
 import ntrghidra.NDS.RomOVT;
 import ntrghidra.NDSLabelList.NDSLabel;
@@ -100,25 +101,31 @@ public class NTRGhidraLoader extends AbstractLibrarySupportLoader {
 		//ARM7
 	}
 
-	protected boolean promptToAskSDK() {
+	protected int promptToAskSDK() {
 		String message = "<html>" +
 						 "Nintendo DS binaries from official games use a known SDK compression algorithm." +
 						 " <br><br>" +
 						 " If you are loading a commercial game, click YES. \"";
 		//@formatter:off
-        int choice = OptionDialog.showOptionNoCancelDialog(
+        return OptionDialog.showOptionNoCancelDialog(
                 null,
                 "Commercial ROM or Homebrew?",
                 message,
+				"Cancel",
                 "<html> <font color=\"red\">NO</font>",
                 "<html> <font color=\"green\">YES</font>",
                 OptionDialog.QUESTION_MESSAGE
             );
 		//@formatter:on
-
-		return choice == OptionDialog.OPTION_TWO;
 	}
 
+	/**
+	 * Specifies what loader to use based on the imported executable file (byte provider)
+	 *
+	 * @param provider The bytes being loaded.
+	 * @return A collection of the {@link LoadSpec} with the loader and language ID
+	 * @throws IOException
+	 */
 	@Override
 	public Collection<LoadSpec> findSupportedLoadSpecs(final ByteProvider provider) throws IOException {
 		// In this callback loader should decide whether it able to process the file and return instance of the class LoadSpec,
@@ -126,13 +133,33 @@ public class NTRGhidraLoader extends AbstractLibrarySupportLoader {
 
 		BinaryReader reader = new BinaryReader(provider, true);
 
+		//Not a valid DS or DSi header - skip
+		if (reader.length() < 0x1000) {
+			Msg.debug(this, "Not a valid DS header. Skipping...");
+			return Lists.newArrayList();
+		}
+
+		//Calculate and compare header hash to ensure that this actually is a DS ROM
+		byte[] headerData = reader.readByteArray(0, 0x15E);
+		int headerCRCCalculated = CRC.calculateCRC16(headerData);
+		int headerCRCRead = reader.readUnsignedShort(0x15E);
+		if (headerCRCCalculated != headerCRCRead) {
+			Msg.warn(this, "Calculated header CRC does not match read header CRC! Skipping...");
+			Msg.debug(this, String.format("Calculated header CRC: 0x%04X", headerCRCCalculated));
+			Msg.debug(this, String.format("Read header CRC: 0x%04X", headerCRCRead));
+			return Lists.newArrayList();
+		}
+
 		//Nintendo logo CRC
 		int crcLogo = reader.readUnsignedShort(0x15C);
-		this.usesNintendoSDK = promptToAskSDK();
+		int option = promptToAskSDK();
+		switch(option) {
+			case OptionDialog.OPTION_ONE -> { return Lists.newArrayList(); }//Cancel
+			case OptionDialog.OPTION_TWO -> usesNintendoSDK = false;//No
+			case OptionDialog.OPTION_THREE -> usesNintendoSDK = true;//Yes
+		}
 		if (usesNintendoSDK) {//If commercial game, ensure logo CRC. Otherwise, we don't care.
-			if (crcLogo != 0xCF56) {
-				return Lists.newArrayList();
-			}
+			if (crcLogo != 0xCF56) return Lists.newArrayList();
 		}
 
 		//Nintendo DS has two CPUs. Ask the user which code he/she wants to work with, the ARM7 one or the ARM9 one.
