@@ -5,7 +5,7 @@ A Nintendo DS Loader and plugin for Ghidra
 
 Latest Ghidra version supported: 12.0.4 (09/03/2026 | dd/mm/yyyy)
 
-[![Build NTRGhidra](https://github.com/pedro-javierf/NTRGhidra/actions/workflows/build_ntrghidra.yml/badge.svg)](https://github.com/pedro-javierf/NTRGhidra/actions/workflows/build_ntrghidra.yml) ![](https://img.shields.io/github/issues/pedro-javierf/NTRGhidra/bug)<br>
+[![Build NTRGhidra](https://github.com/pedro-javierf/NTRGhidra/actions/workflows/build_ntrghidra.yml/badge.svg)](https://github.com/pedro-javierf/NTRGhidra/actions/workflows/build_ntrghidra.yml) ![](https://img.shields.io/github/issues/pedro-javierf/NTRGhidra)<br>
 
 # Installation
 If you just want to install the loader into a existing Ghidra installation:
@@ -13,20 +13,18 @@ If you just want to install the loader into a existing Ghidra installation:
 1. Download the .zip from the [releases page](https://github.com/pedro-javierf/NTRGhidra/releases) (Or build the project yourself from the code, instructions below).
 2. Put the .zip into the GHIDRA_INSTALL_DIR/Extensions/Ghidra folder
 3. In the initial Ghidra window (not in the Code Browser), open the "File" menu, and select "Install Extensions". Click the small 'plus' icon in the top right of the window, and select the extension zip file downloaded. This should add an entry into the extensions list. Make sure it is checked and click OK.
-
-
 ![Step 1](install1.png)
 ![Step 2](install2.PNG)
 
 4. If you wish to dynamically load/unload overlays, you must activate this feature by activating the plugin features, using `File` -> `Configure` -> `Miscellaneous` -> `NTRGhidraPlugin` and enable NTRGhidraPlugin.
 
-![Enable plugin for overlays feature](https://private-user-images.githubusercontent.com/2887824/557116007-b15ffc90-9024-41ef-87f7-34021bcd9fb4.png?jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3NzMwNzc1NTYsIm5iZiI6MTc3MzA3NzI1NiwicGF0aCI6Ii8yODg3ODI0LzU1NzExNjAwNy1iMTVmZmM5MC05MDI0LTQxZWYtODdmNy0zNDAyMWJjZDlmYjQucG5nP1gtQW16LUFsZ29yaXRobT1BV1M0LUhNQUMtU0hBMjU2JlgtQW16LUNyZWRlbnRpYWw9QUtJQVZDT0RZTFNBNTNQUUs0WkElMkYyMDI2MDMwOSUyRnVzLWVhc3QtMSUyRnMzJTJGYXdzNF9yZXF1ZXN0JlgtQW16LURhdGU9MjAyNjAzMDlUMTcyNzM2WiZYLUFtei1FeHBpcmVzPTMwMCZYLUFtei1TaWduYXR1cmU9YWRmZTNlNzgzOWVkNTI3OWY0Mjc4NTQ3MTE0YThhNTUzNTE4MmFhZDE3OTgzYjRiMTAxMzdhNWY2MGJmNDRlZiZYLUFtei1TaWduZWRIZWFkZXJzPWhvc3QifQ.txHOvG1-q8yjk3Ib6oEeD3MLHooI3DrEXp57ek1hkhQ)
+[Enable plugin for overlays feature](https://private-user-images.githubusercontent.com/2887824/557116007-b15ffc90-9024-41ef-87f7-34021bcd9fb4.png?jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3NzMwNzc1NTYsIm5iZiI6MTc3MzA3NzI1NiwicGF0aCI6Ii8yODg3ODI0LzU1NzExNjAwNy1iMTVmZmM5MC05MDI0LTQxZWYtODdmNy0zNDAyMWJjZDlmYjQucG5nP1gtQW16LUFsZ29yaXRobT1BV1M0LUhNQUMtU0hBMjU2JlgtQW16LUNyZWRlbnRpYWw9QUtJQVZDT0RZTFNBNTNQUUs0WkElMkYyMDI2MDMwOSUyRnVzLWVhc3QtMSUyRnMzJTJGYXdzNF9yZXF1ZXN0JlgtQW16LURhdGU9MjAyNjAzMDlUMTcyNzM2WiZYLUFtei1FeHBpcmVzPTMwMCZYLUFtei1TaWduYXR1cmU9YWRmZTNlNzgzOWVkNTI3OWY0Mjc4NTQ3MTE0YThhNTUzNTE4MmFhZDE3OTgzYjRiMTAxMzdhNWY2MGJmNDRlZiZYLUFtei1TaWduZWRIZWFkZXJzPWhvc3QifQ.txHOvG1-q8yjk3Ib6oEeD3MLHooI3DrEXp57ek1hkhQ)
 
 5. Restart Ghidra.
 
 # How to Build yourself
 
-NOTE: If you notice any exception while debugging with Eclipse, please ![create an issue](https://github.com/pedro-javierf/NTRGhidra/issues)
+NOTE: If you notice any exception while debugging with Eclipse, please [create an issue](https://github.com/pedro-javierf/NTRGhidra/issues)
 
 These are the basic steps to debug and build the loader. You must have a Ghidra installation.
 
@@ -40,12 +38,12 @@ These are the basic steps to debug and build the loader. You must have a Ghidra 
 
 
 # License
-NTRGhidra is released under the ![Apache License 2.0](https://github.com/pedro-javierf/NTRGhidra/blob/master/LICENSE).
+NTRGhidra is released under the [Apache License 2.0](https://github.com/pedro-javierf/NTRGhidra/blob/master/LICENSE).
 
 # Contributing & Support
 * Fork, modify and pull request to contribute,
 * Open issues suggesting feautures, reporting bugs, asking for documentation or changes, etc.
-* Solve known problems reported in the ![issues](https://github.com/pedro-javierf/NTRGhidra/issues) 
+* Solve known problems reported in the [issues](https://github.com/pedro-javierf/NTRGhidra/issues) 
 * Support by starring the project.
 
 ```diff
