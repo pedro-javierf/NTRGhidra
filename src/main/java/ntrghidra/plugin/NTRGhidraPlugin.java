@@ -174,7 +174,50 @@ public class NTRGhidraPlugin extends ProgramPlugin {
 			return;
 		}
 
-		try(ByteProvider byteProvider = NTRGhidraPlugin.loadNDSFile(fileROM, fsrlROM, true)) {
+		//Load without the built-in CRC gate so we can decide ourselves what to do on a mismatch,
+		//instead of silently getting back a null provider.
+		try(ByteProvider byteProvider = NTRGhidraPlugin.loadNDSFile(fileROM, fsrlROM, false)) {
+			if (byteProvider == null) {
+				Msg.error(this, "Failed to load ROM file for overlay manager!");
+				return;
+			}
+
+			boolean validLogoCRC;
+			try {
+				validLogoCRC = NTRGhidraPlugin.hasNintendoLogoCRC(byteProvider);
+			} catch (IOException e) {
+				Msg.error(this, "Failed to verify ROM header checksum!", e);
+				return;
+			}
+
+			if (!validLogoCRC) {
+				final boolean[] loadAnyway = { false };
+				Swing.runNow(() -> {
+					OptionDialogBuilder optionDialogBuilder = new OptionDialogBuilder();
+					optionDialogBuilder.setTitle(NTRGhidraPlugin.NAME);
+					optionDialogBuilder.setMessage(
+							"This ROM's header does not match the expected Nintendo logo checksum.\n" +
+							"This is often expected if you're reversing a homebrew .nds file, since\n" +
+							"most homebrew toolchains don't embed the official Nintendo boot logo.\n" +
+							"(It can also mean the file is corrupted or not a valid NDS ROM.)\n\n" +
+							"Load it anyway and attempt to parse the overlay table?"
+					);
+					optionDialogBuilder.setMessageType(OptionDialog.WARNING_MESSAGE);
+					optionDialogBuilder.addOption("Load Anyway");
+					optionDialogBuilder.addCancel();
+
+					OptionDialog optionDialog = optionDialogBuilder.build();
+					int option = optionDialog.show();
+					loadAnyway[0] = (option == OptionDialog.YES_OPTION);
+				});
+
+				if (!loadAnyway[0]) {
+					Msg.info(this, "Nintendo logo checksum mismatch - overlay manager not loaded for this program.");
+					return;
+				}
+				Msg.warn(this, "Loading ROM with mismatched Nintendo logo checksum at user's request.");
+			}
+
 			try {
 				nds = new NDS(byteProvider);
 			} catch (IOException e) {
@@ -243,16 +286,28 @@ public class NTRGhidraPlugin extends ProgramPlugin {
 		try(FileByteProvider fbp = new FileByteProvider(fileROM, fsrlROM, AccessMode.READ)) {
 			final byte[] fileData = fbp.readBytes(0, fbp.length());
 			try(ByteArrayProvider byteArrayProvider = new ByteArrayProvider(fileData)) {
-				if (checkCRC) {
-					final byte[] readCRC = byteArrayProvider.readBytes(0x15C, 2);
-					if (!Arrays.equals(readCRC, NTRGhidraPlugin.BYTES_CRC_NINTENDO_LOGO)) {//Assume only commercial uses overlays?
-						Msg.warn(NTRGhidraPlugin.class, "Bad Nintendo CRC check!");
-						return null;
-					}
+				if (checkCRC && !NTRGhidraPlugin.hasNintendoLogoCRC(byteArrayProvider)) {//Assume only commercial uses overlays?
+					Msg.warn(NTRGhidraPlugin.class, "Bad Nintendo CRC check!");
+					return null;
 				}
 				return byteArrayProvider;
 			}
 		}
+	}
+
+	/**
+	 * Checks whether the ROM header's Nintendo logo checksum (at offset 0x15C) matches the
+	 * expected value. Commercial titles always pass this check; many homebrew .nds files do
+	 * NOT, since most homebrew toolchains do not embed the official (copyrighted) Nintendo
+	 * boot logo bitmap. A mismatch is therefore informative, not necessarily an error.
+	 *
+	 * @param byteProvider provider for the ROM bytes
+	 * @return true if the header's logo CRC matches the expected Nintendo value
+	 * @throws IOException if the relevant bytes could not be read
+	 */
+	public static boolean hasNintendoLogoCRC(final ByteProvider byteProvider) throws IOException {
+		final byte[] readCRC = byteProvider.readBytes(0x15C, 2);
+		return Arrays.equals(readCRC, NTRGhidraPlugin.BYTES_CRC_NINTENDO_LOGO);
 	}
 
 	public static Icon getIcon() {
