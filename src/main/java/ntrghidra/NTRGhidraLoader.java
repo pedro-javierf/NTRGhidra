@@ -26,12 +26,14 @@
 
 package ntrghidra;
 
-import docking.widgets.OptionDialog;
 import ghidra.app.util.MemoryBlockUtils;
+import ghidra.app.util.Option;
+import ghidra.app.util.OptionUtils;
 import ghidra.app.util.bin.BinaryReader;
 import ghidra.app.util.bin.ByteProvider;
 import ghidra.app.util.opinion.AbstractLibrarySupportLoader;
 import ghidra.app.util.opinion.LoadSpec;
+import ghidra.framework.model.DomainObject;
 import ghidra.program.flatapi.FlatProgramAPI;
 import ghidra.program.model.address.Address;
 import ghidra.program.model.address.AddressOverflowException;
@@ -40,6 +42,7 @@ import ghidra.program.model.lang.LanguageCompilerSpecPair;
 import ghidra.program.model.listing.Program;
 import ghidra.program.model.mem.MemoryBlock;
 import ghidra.util.Msg;
+import ghidra.util.SystemUtilities;
 import ghidra.util.exception.CancelledException;
 import ntrghidra.NDS.RomOVT;
 import ntrghidra.NDSLabelList.NDSLabel;
@@ -48,9 +51,11 @@ import org.apache.commons.compress.utils.Lists;
 import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.util.Arrays;
 
+import java.awt.GraphicsEnvironment;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -65,6 +70,12 @@ public class NTRGhidraLoader extends AbstractLibrarySupportLoader {
 
 	private static final String versionStr = "v1.5.0";
 
+	/** Import option: decompress the ARM9 binary with the Nintendo SDK (BLZ) scheme. Defaults to on for ROMs carrying the official logo. */
+	public static final String OPTION_NINTENDO_SDK = "Decompress ARM9 (Nintendo SDK, commercial ROM)";
+	/** CRC16 of the official Nintendo logo at 0x15C; commercial (SDK-built) ROMs carry it. */
+	private static final int OFFICIAL_LOGO_CRC = 0xCF56;
+
+	// Set at the start of each load from the chosen LoadSpec and options; loaders are reused, so no state survives a load.
 	private boolean isARM7;
 	private boolean usesNintendoSDK;
 
@@ -73,50 +84,33 @@ public class NTRGhidraLoader extends AbstractLibrarySupportLoader {
 		return NTRGhidraLoader.EXECTUABLE_FORMAT;
 	}
 
-	protected boolean promptToAskCPU() {
-		String message = "<html>" +
-						 "You have loaded what looks like a Nintendo DS program." +
-						 " <br><br>" +
-						 " Nintendo DS binaries contain code for the two CPUs:<br>" +
-						 " ARM7 code: Usually handles audio, touch screen, cryptography, etc. <br>" +
-						 " ARM9 code: Runs game code, graphics, etc." +
-						 " <br><br>" +
-						 " NTRGhidra version " + NTRGhidraLoader.versionStr + " can work with both.<br>" +
-						 "Which one would you like to load? \"";
-		//@formatter:off
-		int choice = OptionDialog.showOptionNoCancelDialog(
-                null,
-				"Choose CPU",
-				message,
-				"<html> <font color=\"red\">ARM7</font>",
-				"<html> <font color=\"green\">ARM9</font>",
-				OptionDialog.QUESTION_MESSAGE
-        );
-		//@formatter:on
-
-		//chosenCPU = false;
-		// ARM9
-		return choice != OptionDialog.OPTION_TWO;
-		//chosenCPU = true;
-		//ARM7
+	private static boolean hasOfficialLogo(final ByteProvider provider) throws IOException {
+		return new BinaryReader(provider, true).readUnsignedShort(0x15C) == OFFICIAL_LOGO_CRC;
 	}
 
-	protected int promptToAskSDK() {
-		String message = "<html>" +
-						 "Nintendo DS binaries from official games use a known SDK compression algorithm." +
-						 " <br><br>" +
-						 " If you are loading a commercial game, click YES. \"";
-		//@formatter:off
-        return OptionDialog.showOptionNoCancelDialog(
-                null,
-                "Commercial ROM or Homebrew?",
-                message,
-				"Cancel",
-                "<html> <font color=\"red\">NO</font>",
-                "<html> <font color=\"green\">YES</font>",
-                OptionDialog.QUESTION_MESSAGE
-            );
-		//@formatter:on
+	@Override
+	public List<Option> getDefaultOptions(final ByteProvider provider, final LoadSpec loadSpec, final DomainObject domainObject,
+			final boolean isLoadIntoProgram, final boolean mirrorFsLayout) {
+		List<Option> options = new ArrayList<>(super.getDefaultOptions(provider, loadSpec, domainObject, isLoadIntoProgram, mirrorFsLayout));
+		boolean official = false;
+		try {
+			official = hasOfficialLogo(provider);
+		}
+		catch (IOException e) {
+			Msg.debug(this, "Could not read the logo CRC: " + e.getMessage());
+		}
+		options.add(new Option(OPTION_NINTENDO_SDK, official));
+		return options;
+	}
+
+	@Override
+	public String validateOptions(final ByteProvider provider, final LoadSpec loadSpec, final List<Option> options, final Program program) {
+		for (Option option : options) {
+			if (option.getName().equals(OPTION_NINTENDO_SDK)) {
+				if (!Boolean.class.isAssignableFrom(option.getValueClass())) return "Invalid type for option: " + option.getName();
+			}
+		}
+		return super.validateOptions(provider, loadSpec, options, program);
 	}
 
 	/**
@@ -150,30 +144,23 @@ public class NTRGhidraLoader extends AbstractLibrarySupportLoader {
 			return Lists.newArrayList();
 		}
 
-		//Nintendo logo CRC
-		int crcLogo = reader.readUnsignedShort(0x15C);
-		int option = promptToAskSDK();
-		switch(option) {
-			case OptionDialog.OPTION_ONE -> { return Lists.newArrayList(); }//Cancel
-			case OptionDialog.OPTION_TWO -> usesNintendoSDK = false;//No
-			case OptionDialog.OPTION_THREE -> usesNintendoSDK = true;//Yes
-		}
-		if (usesNintendoSDK) {//If commercial game, ensure logo CRC. Otherwise, we don't care.
-			if (crcLogo != 0xCF56) return Lists.newArrayList();
-		}
-
-		//Nintendo DS has two CPUs. Ask the user which code he/she wants to work with, the ARM7 one or the ARM9 one.
-		this.isARM7 = promptToAskCPU();
-
-		//Setup Ghidra with the chosen CPU.
-		if (isARM7) {
-			return List.of(
-					new LoadSpec(this, 0, new LanguageCompilerSpecPair(NTRGhidraLoader.LANGUAGE_ID_ARM7, CompilerSpecID.DEFAULT_ID), true)
-			);
-		}
+		// No dialogs here: Ghidra probes every loader for every import, headless included. The two CPUs are two load
+		// specs (the import dialog's Language choice; ARM9, the game code, is preferred), and commercial vs homebrew
+		// is the OPTION_NINTENDO_SDK import option, defaulted from the logo CRC.
 		return List.of(
-				new LoadSpec(this, 0, new LanguageCompilerSpecPair(NTRGhidraLoader.LANGUAGE_ID_ARM9, CompilerSpecID.DEFAULT_ID), true)
+				new LoadSpec(this, 0, new LanguageCompilerSpecPair(NTRGhidraLoader.LANGUAGE_ID_ARM9, CompilerSpecID.DEFAULT_ID), true),
+				new LoadSpec(this, 0, new LanguageCompilerSpecPair(NTRGhidraLoader.LANGUAGE_ID_ARM7, CompilerSpecID.DEFAULT_ID), false)
 		);
+	}
+
+	/** Overlay choice: the dialog in the GUI, all enabled (the dialog's own default) when there is no one to ask. */
+	private static boolean[] selectOverlays(final String title, final String[] overlayNames) {
+		if (SystemUtilities.isInHeadlessMode() || GraphicsEnvironment.isHeadless()) {
+			boolean[] all = new boolean[overlayNames.length];
+			java.util.Arrays.fill(all, true);
+			return all;
+		}
+		return new OverlaySelectionDialog(title, overlayNames, true).show(null);
 	}
 
 	//https://pedro-javierf.github.io/devblog/advancedghidraloader/
@@ -182,9 +169,7 @@ public class NTRGhidraLoader extends AbstractLibrarySupportLoader {
 
 		RomOVT[] ovt = romparser.getMainOVT();
 		String[] overlayNames = NTRGhidraLoader.generateOverlayNames(romparser, false);
-		OverlaySelectionDialog overlaySelectionDialog = new OverlaySelectionDialog("Select which ARM9 overlays to enable", overlayNames, true);
-		boolean[] isOverlayEnabled = overlaySelectionDialog
-				.show(null);
+		boolean[] isOverlayEnabled = selectOverlays("Select which ARM9 overlays to enable", overlayNames);
 
 		for(int i = 0; i < ovt.length; i++) {
 			RomOVT overlay = ovt[i];
@@ -248,9 +233,7 @@ public class NTRGhidraLoader extends AbstractLibrarySupportLoader {
 
 		RomOVT[] subOVT = romparser.getSubOVT();
 		String[] suboverlayNames = NTRGhidraLoader.generateOverlayNames(romparser, true);
-		OverlaySelectionDialog subOverlaySelectionDialog = new OverlaySelectionDialog("Select which ARM7 suboverlays to enable", suboverlayNames, true);
-		boolean[] isSubOverlayEnabled = subOverlaySelectionDialog
-				.show(null);
+		boolean[] isSubOverlayEnabled = selectOverlays("Select which ARM7 suboverlays to enable", suboverlayNames);
 
 		for(int i = 0; i < subOVT.length; i++) {
 			final RomOVT overlay = subOVT[i];
@@ -298,6 +281,9 @@ public class NTRGhidraLoader extends AbstractLibrarySupportLoader {
 	@Override
 	protected void load(final Program program, final ImporterSettings importerSettings) throws CancelledException, IOException {
 		FlatProgramAPI api = new FlatProgramAPI(program, importerSettings.monitor());
+		isARM7 = importerSettings.loadSpec().getLanguageCompilerSpec().languageID.getIdAsString().equals(LANGUAGE_ID_ARM7);
+		usesNintendoSDK = OptionUtils.getBooleanOptionValue(OPTION_NINTENDO_SDK, importerSettings.options(),
+				hasOfficialLogo(importerSettings.provider()));
 
 		importerSettings.monitor().setMessage("Loading Nintendo DS (NTR) binary...");
 
